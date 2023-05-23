@@ -78,7 +78,7 @@ def handle_click(event):
     if selected_value == 1:
         car_image_path = "start_flag.png"
     elif selected_value == 2:
-        car_image_path = "gool.jpg"
+        car_image_path = "half.png"
     else:
         car_image_path = "gool.jpg"
     
