@@ -29,18 +29,38 @@ def open_path_selection_algorithm():
         coordinates = [(612, 75), (256, 75)]
     elif selected_action == "CA経路":
         coordinates = [(257, 72), (76, 72), (72, 254), (612, 254)]
-
-    Algorithm_test_window.create_Algorithm_window(canvas, selected_action, coordinates)
+    Algorithm_test_window.create_Algorithm_window(canvas, selected_action, coordinates)        
+        
+def select_action2(selected_action):
+    """
+    select_action2関数は、新しいドロップダウンメニューの選択イベントを処理するためのコールバック関数です。
+    選択されたアクションを取得し、何らかの処理を行います。
+    """
+    print("選択されたアクション2:", selected_action)
+    
+    
     
 def handle_click(event):
     """
     handle_click関数は、マウスのクリックイベントを処理するためのコールバック関数です。
     イベントオブジェクトからクリックされた位置座標を取得し、表示します。
-    """ 
+    """
+    # グローバル変数として宣言
+    global car_photo
+
     # クリックされた位置座標を取得
     x = event.x
     y = event.y
     print("クリック位置座標:", x, y)
+
+    # "car.png"の画像を読み込む
+    car_image_path = "start_flag.png"
+    car_image = Image.open(car_image_path)
+    car_image = car_image.resize((40, 40))
+    car_photo = ImageTk.PhotoImage(car_image)
+
+    # クリックされた位置に画像を表示
+    canvas.create_image(x, y, anchor=tk.CENTER, image=car_photo)
     
     
 def change_image():
@@ -144,6 +164,12 @@ action_var.set("アクションを選択")
 action_menu = tk.OptionMenu(window, action_var, "AB経路", "BC経路", "CA経路", command=select_action)
 action_menu.pack(side=tk.RIGHT)
 
+
+# 経路作成用ドロップダウンメニューの作成
+action_var2 = tk.StringVar()
+action_var2.set("アクションを選択")
+action_menu2 = tk.OptionMenu(window, action_var2, "スタート地点", "ゴール地点", "中間地点", command=select_action2)
+action_menu2.pack(side=tk.RIGHT)
 
 # マウスクリックイベントのバインド
 last_click_position = None  # 前回のクリック位置を保存する変数
