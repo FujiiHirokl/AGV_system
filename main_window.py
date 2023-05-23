@@ -43,13 +43,13 @@ def select_action2(selected_action):
         # ここにスタート地点の処理を追加するコードを記述します。
         selected_value = 1
 
-    elif selected_action == "ゴール地点":
+    elif selected_action == "中間地点":
         # ゴール地点の処理
         print("ゴール地点が選択されました。")
         # ここにゴール地点の処理を追加するコードを記述します。
         selected_value = 2
 
-    elif selected_action == "中間地点":
+    elif selected_action == "ゴール地点":
         # 中間地点の処理
         print("中間地点が選択されました。")
         # ここに中間地点の処理を追加するコードを記述します。
@@ -67,7 +67,7 @@ def handle_click(event):
     イベントオブジェクトからクリックされた位置座標を取得し、表示します。
     """
     # グローバル変数として宣言
-    global car_photo,selected_value
+    global car_photo,selected_value,start,gool
 
     # クリックされた位置座標を取得
     x = event.x
@@ -77,20 +77,31 @@ def handle_click(event):
     # 画像を読み込む
     if selected_value == 1:
         car_image_path = "start_flag.png"
+        start = (x, y)
+        car_image = Image.open(car_image_path)
+        car_image = car_image.resize((40, 40))
+        car_photo = ImageTk.PhotoImage(car_image)
+        # canvas.delete("start")  # 画像を削除しない
+        canvas.create_image(x, y, anchor=tk.CENTER, image=car_photo, tag="start")
     elif selected_value == 2:
+        half.append((x, y))
         car_image_path = "half.png"
-    else:
+        car_image = Image.open(car_image_path)
+        car_image = car_image.resize((40, 40))
+        car_photo = ImageTk.PhotoImage(car_image)
+        for coordinate in  half:
+            x, y = coordinate
+            canvas.create_image(x, y, anchor=tk.CENTER, image=car_photo,tag="flag")
+    elif selected_value == 3:
         car_image_path = "gool.jpg"
+        gool = (x,y)
+        car_image = Image.open(car_image_path)
+        car_image = car_image.resize((40, 40))
+        car_photo = ImageTk.PhotoImage(car_image)
+        #canvas.delete("gool")
+        canvas.create_image(x, y, anchor=tk.CENTER, image=car_photo,tag="gool")
     
     print(selected_value)
-        
-    car_image = Image.open(car_image_path)
-    car_image = car_image.resize((40, 40))
-    car_photo = ImageTk.PhotoImage(car_image)
-
-    # クリックされた位置に画像を表示
-    canvas.create_image(x, y, anchor=tk.CENTER, image=car_photo)
-    
     
 def change_image():
     """
@@ -166,6 +177,15 @@ image = Image.open(image_path)
 image = image.resize((700, 500))
 photo = ImageTk.PhotoImage(image)
 
+#スタート地点設定用の配列
+start =(0,0)
+
+#中間地点設定用の配列
+half = []
+
+#ゴール地点設定用の配列
+gool = (0,0)
+
 # キャンバスの作成
 canvas = tk.Canvas(window, width=image.width, height=image.height)
 canvas.pack(side=tk.LEFT)
@@ -196,7 +216,7 @@ action_menu.pack(side=tk.RIGHT)
 # 経路作成用ドロップダウンメニューの作成
 action_var2 = tk.StringVar()
 action_var2.set("アクションを選択")
-action_menu2 = tk.OptionMenu(window, action_var2, "スタート地点", "ゴール地点", "中間地点", command=select_action2)
+action_menu2 = tk.OptionMenu(window, action_var2, "スタート地点", "中間地点", "ゴール地点", command=select_action2)
 action_menu2.pack(side=tk.RIGHT)
 
 #選択されている経路選択用ドロップダウンメニューを見る変数
@@ -205,7 +225,6 @@ selected_value = 0
 # マウスクリックイベントのバインド
 last_click_position = None  # 前回のクリック位置を保存する変数
 canvas.bind("<Button-1>", handle_click)
-
 
 # ウィンドウのメインループ
 window.mainloop()
