@@ -34,10 +34,31 @@ def open_path_selection_algorithm():
 def select_action2(selected_action):
     """
     select_action2関数は、新しいドロップダウンメニューの選択イベントを処理するためのコールバック関数です。
-    選択されたアクションを取得し、何らかの処理を行います。
+    選択されたアクションを取得し、それに応じて異なる処理を行います。
     """
-    print("選択されたアクション2:", selected_action)
-    
+    global selected_value
+    if selected_action == "スタート地点":
+        # スタート地点の処理
+        print("スタート地点が選択されました。")
+        # ここにスタート地点の処理を追加するコードを記述します。
+        selected_value = 1
+
+    elif selected_action == "ゴール地点":
+        # ゴール地点の処理
+        print("ゴール地点が選択されました。")
+        # ここにゴール地点の処理を追加するコードを記述します。
+        selected_value = 2
+
+    elif selected_action == "中間地点":
+        # 中間地点の処理
+        print("中間地点が選択されました。")
+        # ここに中間地点の処理を追加するコードを記述します。
+        selected_value = 3
+
+    else:
+        # その他のアクションの処理
+        print("選択されたアクション2:", selected_action)
+        # ここにその他のアクションの処理を追加するコードを記述します。
     
     
 def handle_click(event):
@@ -46,15 +67,23 @@ def handle_click(event):
     イベントオブジェクトからクリックされた位置座標を取得し、表示します。
     """
     # グローバル変数として宣言
-    global car_photo
+    global car_photo,selected_value
 
     # クリックされた位置座標を取得
     x = event.x
     y = event.y
     print("クリック位置座標:", x, y)
 
-    # "car.png"の画像を読み込む
-    car_image_path = "start_flag.png"
+    # 画像を読み込む
+    if selected_value == 1:
+        car_image_path = "start_flag.png"
+    elif selected_value == 2:
+        car_image_path = "gool.jpg"
+    else:
+        car_image_path = "gool.jpg"
+    
+    print(selected_value)
+        
     car_image = Image.open(car_image_path)
     car_image = car_image.resize((40, 40))
     car_photo = ImageTk.PhotoImage(car_image)
@@ -120,7 +149,6 @@ def select_action(event):
         canvas.create_line(x1, y1, x2, y2, fill="red", dash=(4, 2), width=8, tags="root")
 
 
-
 """
 この部分はメインウィンドウの作成と設定を行っています。tkinterのTkクラスを使ってウィンドウを作成し、
 ウィンドウのタイトルやサイズを設定します。また、画像を読み込んで表示するためにtkinterのCanvasク
@@ -171,9 +199,13 @@ action_var2.set("アクションを選択")
 action_menu2 = tk.OptionMenu(window, action_var2, "スタート地点", "ゴール地点", "中間地点", command=select_action2)
 action_menu2.pack(side=tk.RIGHT)
 
+#選択されている経路選択用ドロップダウンメニューを見る変数
+selected_value = 0
+
 # マウスクリックイベントのバインド
 last_click_position = None  # 前回のクリック位置を保存する変数
 canvas.bind("<Button-1>", handle_click)
+
 
 # ウィンドウのメインループ
 window.mainloop()
