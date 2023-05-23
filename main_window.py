@@ -6,6 +6,7 @@
 AGV監視システムのメイン
 """""""""""""""""""""""""""""""""""""""""""""
 import tkinter as tk
+import tkinter.filedialog
 from PIL import ImageTk, Image
 import sub_window
 import Algorithm_test_window
@@ -18,8 +19,6 @@ def open_sub_window(status_ber):
     """   
     sub_window.create_sub_window(canvas,status_ber)
 
- 
-   
 def open_path_selection_algorithm():
     selected_action = action_var.get()
     coordinates = []
@@ -33,23 +32,39 @@ def open_path_selection_algorithm():
 
     Algorithm_test_window.create_Algorithm_window(canvas, selected_action, coordinates)
     
-"""
-handle_click関数は、マウスのクリックイベントを処理するためのコールバック関数です。
-イベントオブジェクトからクリックされた位置座標を取得し、表示します。
-""" 
 def handle_click(event):
+    """
+    handle_click関数は、マウスのクリックイベントを処理するためのコールバック関数です。
+    イベントオブジェクトからクリックされた位置座標を取得し、表示します。
+    """ 
     # クリックされた位置座標を取得
     x = event.x
     y = event.y
     print("クリック位置座標:", x, y)
+    
+    
+def change_image():
+    """
+    この関数は、ユーザーが新しい画像を選択するためのファイルダイアログを表示し、選択された画像をキャンバス上に表示する役割を持ちます。
+    """
+    global image, photo
+
+    # 画像の選択ダイアログを表示し、新しい画像ファイルを選択
+    new_image_path = tk.filedialog.askopenfilename(filetypes=[("Image Files", "*.jpg;*.jpeg;*.png")])
+
+    # 新しい画像を読み込み、キャンバス上の画像を更新
+    image = Image.open(new_image_path)
+    image = image.resize((700, 500))
+    photo = ImageTk.PhotoImage(image)
+    canvas.create_image(0, 0, anchor=tk.NW, image=photo)
 
      
-"""
-select_action関数は、オプションメニューの選択イベントを処理するためのコールバック関数です。
-選択されたアクションを取得し、それに応じて座標情報を設定します。そして、canvas上に現在描画
-されている線を削除し、新たに座標情報を利用して線を描画します。描画される線は赤色で、点線で表示されます。
-"""
 def select_action(event):
+    """
+    select_action関数は、オプションメニューの選択イベントを処理するためのコールバック関数です。
+    選択されたアクションを取得し、それに応じて座標情報を設定します。そして、canvas上に現在描画
+    されている線を削除し、新たに座標情報を利用して線を描画します。描画される線は赤色で、点線で表示されます。
+    """
     selected_action = action_var.get()
     print("選択されたアクション:", selected_action)
 
@@ -116,6 +131,7 @@ window.config(menu=menubar)
 file_menu = tk.Menu(menubar, tearoff=0)
 file_menu.add_command(label="搬送車信号テスト", command=lambda: open_sub_window(status_bar))
 file_menu.add_command(label="経路選択アルゴリズム", command=open_path_selection_algorithm)
+file_menu.add_command(label="画像を変更", command=change_image)
 menubar.add_cascade(label="デバッグ", menu=file_menu)
 
 # メニューバーに座標を表示するラベルを追加
