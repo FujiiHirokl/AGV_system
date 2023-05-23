@@ -76,30 +76,21 @@ def handle_click(event):
 
     # 画像を読み込む
     if selected_value == 1:
-        car_image_path = "start_flag.png"
-        start = (x, y)
-        car_image = Image.open(car_image_path)
-        car_image = car_image.resize((40, 40))
-        car_photo = ImageTk.PhotoImage(car_image)
-        # canvas.delete("start")  # 画像を削除しない
-        canvas.create_image(x, y, anchor=tk.CENTER, image=car_photo, tag="start")
+        start = (x,y)
+        p1,p2 = start
+        print(start)
+        canvas.delete("start")
+        canvas.create_image(p1, p2, anchor=tk.CENTER, image=start_photo, tag="start")
+        
     elif selected_value == 2:
         half.append((x, y))
-        car_image_path = "half.png"
-        car_image = Image.open(car_image_path)
-        car_image = car_image.resize((40, 40))
-        car_photo = ImageTk.PhotoImage(car_image)
         for coordinate in  half:
             x, y = coordinate
-            canvas.create_image(x, y, anchor=tk.CENTER, image=car_photo,tag="flag")
+            canvas.create_image(x, y, anchor=tk.CENTER, image=half_photo,tag="flag")
     elif selected_value == 3:
-        car_image_path = "gool.jpg"
         gool = (x,y)
-        car_image = Image.open(car_image_path)
-        car_image = car_image.resize((40, 40))
-        car_photo = ImageTk.PhotoImage(car_image)
-        #canvas.delete("gool")
-        canvas.create_image(x, y, anchor=tk.CENTER, image=car_photo,tag="gool")
+        canvas.delete("gool")
+        canvas.create_image(x, y, anchor=tk.CENTER, image=gool_photo,tag="gool")
     
     print(selected_value)
     
@@ -225,6 +216,24 @@ selected_value = 0
 # マウスクリックイベントのバインド
 last_click_position = None  # 前回のクリック位置を保存する変数
 canvas.bind("<Button-1>", handle_click)
+
+
+start_image_path = "start_flag.png"
+start_image = Image.open(start_image_path)
+start_image = start_image.resize((40, 40))
+start_photo = ImageTk.PhotoImage(start_image)
+
+
+half_image_path = "half.png"
+half_image = Image.open(half_image_path)
+half_image = half_image.resize((40, 40))
+half_photo = ImageTk.PhotoImage(half_image)
+
+
+gool_image_path = "gool.jpg"
+gool_image = Image.open(gool_image_path)
+gool_image = gool_image.resize((40, 40))
+gool_photo = ImageTk.PhotoImage(gool_image)
 
 # ウィンドウのメインループ
 window.mainloop()
