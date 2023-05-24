@@ -172,7 +172,14 @@ window.geometry("880x600")  # ウィンドウサイズを固定
 def on_decision_button_click():
     # ボタンがクリックされたときの処理を記述
     messagebox.showinfo("決定ボタン", "決定ボタンがクリックされました！")
-
+    root = []
+    root.append(start)
+    for coordinate in  half:
+        root.append(coordinate)
+    root.append(gool)
+    
+    print(root)
+    
 # 画像の読み込み
 image_path = "image.jpg"
 image = Image.open(image_path)
