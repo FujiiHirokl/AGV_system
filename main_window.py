@@ -10,6 +10,9 @@ import tkinter.filedialog
 from PIL import ImageTk, Image
 import sub_window
 import Algorithm_test_window
+import tkinter.messagebox as messagebox
+
+
 
 
 def open_sub_window(status_ber):
@@ -108,6 +111,7 @@ def change_image():
     image = image.resize((700, 500))
     photo = ImageTk.PhotoImage(image)
     canvas.create_image(0, 0, anchor=tk.NW, image=photo)
+    
 
      
 def select_action(event):
@@ -162,6 +166,13 @@ window = tk.Tk()
 window.title("無人搬送車制御アプリケーション ver1.0.0")
 window.geometry("880x600")  # ウィンドウサイズを固定
 
+
+
+# ボタンのコマンドとなる関数を定義
+def on_decision_button_click():
+    # ボタンがクリックされたときの処理を記述
+    messagebox.showinfo("決定ボタン", "決定ボタンがクリックされました！")
+
 # 画像の読み込み
 image_path = "image.jpg"
 image = Image.open(image_path)
@@ -203,6 +214,10 @@ action_var.set("アクションを選択")
 action_menu = tk.OptionMenu(window, action_var, "AB経路", "BC経路", "CA経路", command=select_action)
 action_menu.pack(side=tk.RIGHT)
 
+# 決定ボタンを作成
+decision_button = tk.Button(window, text="決定", command=on_decision_button_click)
+decision_button.pack(side=tk.RIGHT)
+
 
 # 経路作成用ドロップダウンメニューの作成
 action_var2 = tk.StringVar()
@@ -217,7 +232,7 @@ selected_value = 0
 last_click_position = None  # 前回のクリック位置を保存する変数
 canvas.bind("<Button-1>", handle_click)
 
-
+#標示画像の変形
 start_image_path = "start_flag.png"
 start_image = Image.open(start_image_path)
 start_image = start_image.resize((40, 40))
