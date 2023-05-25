@@ -35,10 +35,64 @@ def open_sub_window(status_ber):
     sub_window.create_sub_window(canvas,status_ber)
 
 def open_path_selection_algorithm():
-    global coordinates,selected_item
+    def handle_selection():
+        selected_item = selected_route.get()
+        if selected_item == "経路を選択":
+            messagebox.showinfo("エラー", "経路を選択してください。")
+        else:
+            perform_processing(selected_item)
+    # 経路名を格納する配列
+    route_names = []
 
-    Algorithm_test_window.create_Algorithm_window(canvas, selected_item, coordinates)        
-        
+    # 経路番号の少ない順に経路名を取得するクエリを実行
+    query = "SELECT DISTINCT 経路名 FROM route_data ORDER BY 経路番号 ASC"
+    cursor.execute(query)
+    results = cursor.fetchall()
+
+    # 経路名を配列に格納
+    for row in results:
+        route_names.append(row[0])
+
+    # ドロップダウンメニューを作成するための新しいウィンドウを作成
+    path_selection_window = tk.Toplevel(window)
+    path_selection_window.title("経路選択アルゴリズム")
+    path_selection_window.geometry("400x200")
+
+    # ドロップダウンメニューを作成
+    selected_route = tk.StringVar()
+    selected_route.set("経路を選択")
+    dropdown = tk.OptionMenu(path_selection_window, selected_route, *route_names)
+    dropdown.pack(pady=20)
+    # 経路選択ボタンを作成
+    select_button = tk.Button(path_selection_window, text="経路選択", command=handle_selection)
+    select_button.pack()
+
+  
+def perform_processing(selected_route):
+    coordinates = []
+
+    # 特定の項目名の座標x, yを順番が少ない順に取得するクエリを実行
+    query = "SELECT x, y FROM route_data WHERE 経路名 = '{}' ORDER BY 順番 ASC".format(selected_route)
+    cursor.execute(query)
+    results = cursor.fetchall()
+    # 結果を(x, y)形式の配列に格納
+    for row in results:
+        coordinates.append((row[0], row[1]))
+
+    # 現在描画されている線を削除
+    canvas.delete("root")
+
+    # 座標情報を利用して線を描画
+    for i in range(len(coordinates) - 1):
+        x1, y1 = coordinates[i]
+        x2, y2 = coordinates[i + 1]
+        canvas.create_line(x1, y1, x2, y2, fill="red", dash=(4, 2), width=8, tags="root")
+    
+    Algorithm_test_window.create_Algorithm_window(canvas, selected_route, coordinates)      
+    print(f"Selected Route: {selected_route}")
+    # Perform the desired processing here
+    
+    
 def select_action2(selected_action):
     """
     select_action2関数は、新しいドロップダウンメニューの選択イベントを処理するためのコールバック関数です。

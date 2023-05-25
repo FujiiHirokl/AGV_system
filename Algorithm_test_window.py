@@ -27,7 +27,7 @@ def create_Algorithm_window(canvas, selected_action, coordinates):
     car_image = Image.open(car_image_path)
     car_image = car_image.resize((80, 80))  # 画像のサイズを調整
     car_photo = ImageTk.PhotoImage(car_image)
-    car = canvas.create_image(x, y, image=car_photo, anchor=tk.CENTER)
+    car = canvas.create_image(x, y, image=car_photo, anchor=tk.CENTER,tag="car")
 
     # カウントの初期化
     count = 0
@@ -57,7 +57,8 @@ def create_Algorithm_window(canvas, selected_action, coordinates):
             else:
                 # 終了ボタンが押された場合の処理
                 # ...
-                canvas.delete("image")
+                canvas.delete("root")
+                canvas.delete("car")
                 algorithm_window.destroy()
                 pass
                 
@@ -118,6 +119,16 @@ def create_Algorithm_window(canvas, selected_action, coordinates):
         #到着とされる距離以内にいるか判断
         if math.sqrt((coordinates[1 + i][0] - x) ** 2 + (coordinates[1 + i][1] - y) ** 2) <= 30:
             arrival()
+        
+    def on_close():
+        if not messagebox.askyesno("確認", "アルゴリズムシミュレーションを終了しますか？"):
+            return
+        canvas.delete("root")
+        canvas.delete("car")
+        algorithm_window.destroy()
+        
+    # ウィンドウが閉じられたときの処理を設定する
+    algorithm_window.protocol("WM_DELETE_WINDOW", on_close)
         
     # スタートボタンの作成
     start_button = tk.Button(algorithm_window, text="スタート", command=start_algorithm, width=10, height=2, bg="#4CAF50", fg="white")
