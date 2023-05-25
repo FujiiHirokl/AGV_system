@@ -12,11 +12,10 @@ import random
 import algorithm_function
 import tkinter.messagebox as messagebox
 
-def create_Algorithm_window(canvas, selected_action, coordinates):
+def create_Algorithm_window(canvas, selected_action, coordinates,status_bar):
     algorithm_window = tk.Toplevel()
     algorithm_window.title("経路選択アルゴリズム")
     algorithm_window.geometry("400x100")
-    
 
     print(selected_action)
     print(coordinates)
@@ -27,7 +26,7 @@ def create_Algorithm_window(canvas, selected_action, coordinates):
     car_image = Image.open(car_image_path)
     car_image = car_image.resize((80, 80))  # 画像のサイズを調整
     car_photo = ImageTk.PhotoImage(car_image)
-    car = canvas.create_image(x, y, image=car_photo, anchor=tk.CENTER,tag="car")
+    car = canvas.create_image(x, y, image=car_photo, anchor=tk.CENTER, tag="car")
 
     # カウントの初期化
     count = 0
@@ -38,10 +37,10 @@ def create_Algorithm_window(canvas, selected_action, coordinates):
     move_x = 0
     move_y = 0
     i = 0
-    
+
     # 目的地に近づいた時に動く関数
     def arrival():
-        nonlocal i,angle,move_x,move_y
+        nonlocal i, angle, move_x, move_y
         if len(coordinates) >= 3 + i:
             i = i + 1
         else:
@@ -59,9 +58,10 @@ def create_Algorithm_window(canvas, selected_action, coordinates):
                 # ...
                 canvas.delete("root")
                 canvas.delete("car")
+                canvas.delete("start")
+                canvas.delete("gool")
                 algorithm_window.destroy()
                 pass
-                
 
     # スタートボタンのクリックイベントハンドラ
     def start_algorithm():
@@ -89,16 +89,13 @@ def create_Algorithm_window(canvas, selected_action, coordinates):
     # 画像の回転
     def rotate_image(image_id, photo):
         nonlocal angle
-        #angle += random.randint(-3, 3)
-        #angle = max(-20, min(20, angle))  # angleを-20から20の範囲に制限する
-        #angle = 200
         rotated_image = car_image.rotate(360 - angle + 180, expand=True)
         photo.image = ImageTk.PhotoImage(rotated_image)
         canvas.itemconfigure(image_id, image=photo.image)
 
     # 画像の移動
     def move_image(image_id):
-        nonlocal x,y,move_x, move_y,angle,i
+        nonlocal x, y, move_x, move_y, angle, i
         move_x = 5 * math.cos(math.radians(angle + 90))  # x軸方向の移動量を修正
         move_y = 5 * math.sin(math.radians(angle + 90))  # y軸方向の移動量を修正
         canvas.move(image_id, move_x, move_y)
@@ -106,30 +103,31 @@ def create_Algorithm_window(canvas, selected_action, coordinates):
         y += move_y
         distance, closest_point = algorithm_function.shortest_distance(coordinates[0 + i], coordinates[1 + i], (x, y))
         print("distance: {}".format(distance))
-        #print("closest_point" + format(closest_point))
         
-        #目標の座標距離をどうするかを決める鵜
-        moved_points = algorithm_function.move_points_along_line(coordinates[0 + i], coordinates[1 + i],closest_point, 10)
-        #print("moved_points" + format(moved_points))
-        #print(algorithm_function.calculate_angle( (x, y), moved_points))
+        #目標の座標距離をどうするかを決める
+        moved_points = algorithm_function.move_points_along_line(coordinates[0 + i], coordinates[1 + i], closest_point, 10)
         
         #どのくらいの角度搬送車の誤差を出すかを決めるlamdamがある
-        angle = algorithm_function.calculate_angle( (x, y), moved_points) + 240 + random.randrange(-5, 5)
+        angle = algorithm_function.calculate_angle((x, y), moved_points) + 240 + random.randrange(-5, 5)
         
         #到着とされる距離以内にいるか判断
         if math.sqrt((coordinates[1 + i][0] - x) ** 2 + (coordinates[1 + i][1] - y) ** 2) <= 30:
             arrival()
-        
+        status_bar.config(text="x座標: {:.1f}   y座標: {:.1f}   角度: {:.1f}".format(x, y, angle))
+
+
     def on_close():
         if not messagebox.askyesno("確認", "アルゴリズムシミュレーションを終了しますか？"):
             return
         canvas.delete("root")
+        canvas.delete("start")
+        canvas.delete("gool")
         canvas.delete("car")
         algorithm_window.destroy()
-        
+
     # ウィンドウが閉じられたときの処理を設定する
     algorithm_window.protocol("WM_DELETE_WINDOW", on_close)
-        
+
     # スタートボタンの作成
     start_button = tk.Button(algorithm_window, text="スタート", command=start_algorithm, width=10, height=2, bg="#4CAF50", fg="white")
     start_button.pack(side=tk.LEFT, padx=10, pady=10)
