@@ -9,10 +9,21 @@ import tkinter as tk
 from PIL import ImageTk, Image
 import sub_window
 import Algorithm_test_window
+import delete
 import tkinter.messagebox as messagebox
 from tkinter import messagebox, simpledialog
 from tkinter import ttk
-
+"""
+データベース設計
+CREATE TABLE route_data (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  経路番号 INT,
+  経路名 VARCHAR(255),
+  順番 INT,
+  x INT,
+  y INT
+);
+"""
 # MySQLデータベースへの接続
 connector = mysql.connector.connect(user='root', password='wlcm2T4', host='localhost', database='root', charset='utf8mb4')
 cursor = connector.cursor()
@@ -23,6 +34,11 @@ def open_sub_window(status_bar):
     サブウィンドウを開く役割を果たします。canvasとstatus_barを引数として渡しています。
     """
     sub_window.create_sub_window(canvas, status_bar)
+    
+def delete_route_info():
+    # 経路情報の削除処理を実装する
+    delete.delete_window(canvas)
+
 
 def open_path_selection_algorithm():
     def handle_selection():
@@ -324,6 +340,7 @@ window.config(menu=menubar)
 file_menu = tk.Menu(menubar, tearoff=0)
 file_menu.add_command(label="搬送車信号テスト", command=lambda: open_sub_window(status_bar))
 file_menu.add_command(label="経路選択アルゴリズム", command=open_path_selection_algorithm)
+file_menu.add_command(label="経路情報削除", command=delete_route_info)
 file_menu.add_command(label="画像を変更", command=change_image)
 menubar.add_cascade(label="デバッグ", menu=file_menu)
 
