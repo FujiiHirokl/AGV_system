@@ -40,7 +40,7 @@ def shortest_distance(line_start, line_end, point):
     else:
         closest_point = (x1, y0)  # 垂直な直線の場合は x 座標は変わらず、y 座標が最短距離の点
 
-    return distance, closest_point
+    return distance - 5, closest_point
 
 
 """

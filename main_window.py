@@ -4,15 +4,27 @@
 更新日:2023/5/20
 説明
 AGV監視システムのメイン
+データベース設計
+CREATE TABLE route_data (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  経路番号 INT,
+  経路名 VARCHAR(255),
+  順番 INT,
+  x INT,
+  y INT
+);
 """""""""""""""""""""""""""""""""""""""""""""
+import mysql.connector
+connector = mysql.connector.connect(user='root', password='wlcm2T4', host='localhost', database='root',charset='utf8mb4')
+cursor = connector.cursor()
 import tkinter as tk
 import tkinter.filedialog
 from PIL import ImageTk, Image
 import sub_window
 import Algorithm_test_window
 import tkinter.messagebox as messagebox
-
-
+from tkinter import messagebox, simpledialog
+from tkinter import ttk
 
 
 def open_sub_window(status_ber):
@@ -23,16 +35,9 @@ def open_sub_window(status_ber):
     sub_window.create_sub_window(canvas,status_ber)
 
 def open_path_selection_algorithm():
-    selected_action = action_var.get()
-    coordinates = []
+    global coordinates,selected_item
 
-    if selected_action == "AB経路":
-        coordinates = [(612, 252), (612, 73)]
-    elif selected_action == "BC経路":
-        coordinates = [(612, 75), (256, 75)]
-    elif selected_action == "CA経路":
-        coordinates = [(257, 72), (76, 72), (72, 254), (612, 254)]
-    Algorithm_test_window.create_Algorithm_window(canvas, selected_action, coordinates)        
+    Algorithm_test_window.create_Algorithm_window(canvas, selected_item, coordinates)        
         
 def select_action2(selected_action):
     """
@@ -70,7 +75,7 @@ def handle_click(event):
     イベントオブジェクトからクリックされた位置座標を取得し、表示します。
     """
     # グローバル変数として宣言
-    global car_photo,selected_value,start,gool
+    global selected_value,start,gool
 
     # クリックされた位置座標を取得
     x = event.x
@@ -113,25 +118,34 @@ def change_image():
     canvas.create_image(0, 0, anchor=tk.NW, image=photo)
     
 
-     
-def select_action(event):
+
+def handle_selection():
     """
     select_action関数は、オプションメニューの選択イベントを処理するためのコールバック関数です。
     選択されたアクションを取得し、それに応じて座標情報を設定します。そして、canvas上に現在描画
     されている線を削除し、新たに座標情報を利用して線を描画します。描画される線は赤色で、点線で表示されます。
     """
-    selected_action = action_var.get()
-    print("選択されたアクション:", selected_action)
-
-    # 配列の座標情報を取得
+    global coordinates,selected_item
+    selected_item = selected_route.get()
+    print(selected_item)
+    # 選択された項目に基づいた処理を行う
+    # ここに処理のコードを記述してください
+    # 結果を格納する配列
     coordinates = []
-    if selected_action == "AB経路":
-        coordinates = [(612, 252), (612, 73)]
-    elif selected_action == "BC経路":
-        coordinates = [(612, 75), (256, 75)]
-    elif selected_action == "CA経路":
-        coordinates = [(257, 72), (76, 72), (72, 254), (612, 254)]
 
+    # 特定の項目名の座標x, yを順番が少ない順に取得するクエリを実行
+    query = "SELECT x, y FROM route_data WHERE 経路名 = '{}' ORDER BY 順番 ASC".format(selected_item)
+    cursor.execute(query)
+    results = cursor.fetchall()
+
+    # 結果を(x, y)形式の配列に格納
+    for row in results:
+        coordinates.append((row[0], row[1]))
+
+    # 結果の出力
+    for coordinate in coordinates:
+        print(coordinate)
+    
     # 現在描画されている線を削除
     canvas.delete("root")
 
@@ -139,22 +153,8 @@ def select_action(event):
     for i in range(len(coordinates) - 1):
         x1, y1 = coordinates[i]
         x2, y2 = coordinates[i + 1]
-        
-        """reate_lineのオプション
-        fill: 線の色を指定します。カラーコード（"#RRGGBB"）を使用します。
-        outline: 線の外枠の色を指定します。
-        width: 線の太さを指定します。整数値を指定し、単位はピクセルです。
-        dash: 線のスタイルを指定します。(4, 2)は4ピクセルの線、2ピクセルの点線のパターンになります。
-        dashoffset: 点線の開始位置を指定します。デフォルトでは0です。
-        capstyle: 線の端点のスタイルを指定します。"butt"（デフォルト）、"projecting"、"round"のいずれかを指定します。
-        joinstyle: 線の角のスタイルを指定します。"miter"（デフォルト）、"round"、"bevel"のいずれかを指定します。
-        smooth: 線をなめらかに描画するかどうかを指定します。デフォルトではFalseで、直線が描画されます。Trueに設定すると、なめらかな曲線が描画されます。
-        splinesteps: smoothオプションがTrueの場合に、曲線を描画する際のステップ数を指定します。デフォルトでは12です。
-        tags: 線にタグを付けることができます。タグは文字列またはタグのリストとして指定します。タグを指定することで、後で線を特定のタグで検索したり操作したりすることができます。
-        """
         canvas.create_line(x1, y1, x2, y2, fill="red", dash=(4, 2), width=8, tags="root")
-
-
+    
 """
 この部分はメインウィンドウの作成と設定を行っています。tkinterのTkクラスを使ってウィンドウを作成し、
 ウィンドウのタイトルやサイズを設定します。また、画像を読み込んで表示するためにtkinterのCanvasク
@@ -170,13 +170,36 @@ window.geometry("880x600")  # ウィンドウサイズを固定
 
 # ボタンのコマンドとなる関数を定義
 def on_decision_button_click():
+    
     # ボタンがクリックされたときの処理を記述
+    route_name = simpledialog.askstring("経路名入力", "経路名を入力してください:")
+    if route_name is None:
+        return
     messagebox.showinfo("決定ボタン", "決定ボタンがクリックされました！")
+
+    # 経路番号の最大値を取得するクエリを実行
+    query = "SELECT MAX(経路番号) FROM route_data"
+    cursor.execute(query)
+    result = cursor.fetchone()[0]
+    max_route_number = result if result else 0
+    max_route_number += 1
+
     root = []
     root.append(start)
-    for coordinate in  half:
+    for coordinate in half:
         root.append(coordinate)
     root.append(gool)
+
+    i = 0
+    for coordinate in root:
+        i += 1
+        x, y = coordinate
+        values = (max_route_number, route_name, i, x, y)
+        insert_query = "INSERT INTO route_data (経路番号, 経路名, 順番, x, y) VALUES (%s, %s, %s, %s, %s)"
+        cursor.execute(insert_query, values)
+
+    connector.commit()
+
     
     print(root)
     
@@ -215,11 +238,6 @@ menubar.add_cascade(label="デバッグ", menu=file_menu)
 status_bar = tk.Label(window, text="x座標: 0   y座標: 0   角度: 0", bd=1, relief=tk.SUNKEN, anchor=tk.W)
 status_bar.pack(side=tk.BOTTOM, fill=tk.X)
 
-# ドロップダウンメニューの作成
-action_var = tk.StringVar()
-action_var.set("アクションを選択")
-action_menu = tk.OptionMenu(window, action_var, "AB経路", "BC経路", "CA経路", command=select_action)
-action_menu.pack(side=tk.RIGHT)
 
 # 決定ボタンを作成
 decision_button = tk.Button(window, text="決定", command=on_decision_button_click)
@@ -232,12 +250,41 @@ action_var2.set("アクションを選択")
 action_menu2 = tk.OptionMenu(window, action_var2, "スタート地点", "中間地点", "ゴール地点", command=select_action2)
 action_menu2.pack(side=tk.RIGHT)
 
+
+# ドロップダウンメニューを作成
+# 経路名を格納する配列
+route_names = []
+
+# 経路番号の少ない順に経路名を取得するクエリを実行
+query = "SELECT DISTINCT 経路名 FROM route_data ORDER BY 経路番号 ASC"
+cursor.execute(query)
+results = cursor.fetchall()
+
+# 経路名を配列に格納
+for row in results:
+    route_names.append(row[0])
+
+# 配列の出力
+for route_name in route_names:
+    print(route_name)
+    
+# ドロップダウンメニューを作成
+selected_route = tk.StringVar()
+selected_route.set("経路を選択")
+dropdown = tk.OptionMenu(window, selected_route, *route_names)
+dropdown.pack(side=tk.RIGHT)
+
+
 #選択されている経路選択用ドロップダウンメニューを見る変数
 selected_value = 0
 
 # マウスクリックイベントのバインド
 last_click_position = None  # 前回のクリック位置を保存する変数
 canvas.bind("<Button-1>", handle_click)
+
+
+# ドロップダウンメニューの選択変更時に呼ばれる関数を設定
+selected_route.trace('w', lambda *args: handle_selection())
 
 #標示画像の変形
 start_image_path = "start_flag.png"

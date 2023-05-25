@@ -105,12 +105,12 @@ def create_Algorithm_window(canvas, selected_action, coordinates):
         y += move_y
         distance, closest_point = algorithm_function.shortest_distance(coordinates[0 + i], coordinates[1 + i], (x, y))
         print("distance: {}".format(distance))
-        print("closest_point" + format(closest_point))
+        #print("closest_point" + format(closest_point))
         
         #目標の座標距離をどうするかを決める鵜
         moved_points = algorithm_function.move_points_along_line(coordinates[0 + i], coordinates[1 + i],closest_point, 10)
-        print("moved_points" + format(moved_points))
-        print(algorithm_function.calculate_angle( (x, y), moved_points))
+        #print("moved_points" + format(moved_points))
+        #print(algorithm_function.calculate_angle( (x, y), moved_points))
         
         #どのくらいの角度搬送車の誤差を出すかを決めるlamdamがある
         angle = algorithm_function.calculate_angle( (x, y), moved_points) + 240 + random.randrange(-5, 5)
