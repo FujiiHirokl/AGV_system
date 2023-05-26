@@ -56,6 +56,7 @@ def open_path_selection_algorithm():
     cursor.execute(query)
     results = cursor.fetchall()
 
+
     # 経路名を配列に格納
     for row in results:
         route_names.append(row[0])
@@ -409,6 +410,7 @@ gool_photo = ImageTk.PhotoImage(gool_image)
 
 
 def handle_submit():
+    global start,half,gool
     x = x_entry.get()
     y = y_entry.get()
     if selected_value == 1:
@@ -427,6 +429,24 @@ def handle_submit():
         gool = (x, y)
         canvas.delete("gool")
         canvas.create_image(x, y, anchor=tk.CENTER, image=gool_photo, tag="gool")
+
+    root = []
+    if start != (0, 0):
+        root.append(start)
+    for coordinate in half:
+        if coordinate != (0, 0):
+            root.append(coordinate)
+    if gool != (0, 0):
+        root.append(gool)
+    
+    # 現在描画されている線を削除
+    canvas.delete("root")
+
+    # 座標情報を利用して線を描画
+    for i in range(len(root) - 1):
+        x1, y1 = root[i]
+        x2, y2 = root[i + 1]
+        canvas.create_line(x1, y1, x2, y2, fill="red", dash=(4, 2), width=8, tags="root")
 
 # x座標の入力欄
 x_label = tk.Label(window, text="x座標:")

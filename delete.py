@@ -72,6 +72,7 @@ def delete_window(canvas):
         # クエリを実行
         cursor.execute(query)
         
+        
         # 指定した経路番号
         specified_route_number = 1
 
