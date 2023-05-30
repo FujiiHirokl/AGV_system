@@ -34,7 +34,7 @@ def delete_window(canvas):
         coordinates = []
 
         # 特定の項目名の座標x, yを順番が少ない順に取得するクエリを実行
-        query = "SELECT x, y FROM route_data WHERE 経路名 = '{}' ORDER BY 順番 ASC".format(selected_item)
+        query = "SELECT SQL_NO_CACHE x, y FROM route_data WHERE 経路名 = '{}' ORDER BY 順番 ASC".format(selected_item)
         cursor.execute(query)
         results = cursor.fetchall()
 
@@ -71,13 +71,14 @@ def delete_window(canvas):
         query = "DELETE FROM route_data WHERE 経路名 = '{}'".format(selected_route_name)
         # クエリを実行
         cursor.execute(query)
+        connector.commit()
         
         
         # 指定した経路番号
         specified_route_number = 1
 
         # 指定した経路番号以降の経路番号を取得
-        query = "SELECT 経路番号 FROM route_data WHERE 経路番号 >= {} ORDER BY 経路番号;".format(specified_route_number)
+        query = "SELECT SQL_NO_CACHE 経路番号 FROM route_data WHERE 経路番号 >= {} ORDER BY 経路番号;".format(specified_route_number)
         cursor.execute(query)
         results = cursor.fetchall()
         expected_route_number = specified_route_number
@@ -103,9 +104,12 @@ def delete_window(canvas):
         connector.commit()
 
         # 指定した経路番号以降の経路番号を取得
-        query = "SELECT 経路番号 FROM route_data WHERE 経路番号 >= {} ORDER BY 経路番号;".format(specified_route_number)
+        query = "SELECT SQL_NO_CACHE 経路番号 FROM route_data WHERE 経路番号 >= {} ORDER BY 経路番号;".format(specified_route_number)
         cursor.execute(query)
         results = cursor.fetchall()
+        canvas.delete("start")
+        canvas.delete("root")
+        canvas.delete("gool")
         
 
     # 選択変更時のイベントハンドラを設定

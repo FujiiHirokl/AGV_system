@@ -25,8 +25,10 @@ CREATE TABLE route_data (
 );
 """
 # MySQLデータベースへの接続
-connector = mysql.connector.connect(user='root', password='wlcm2T4', host='localhost', database='root', charset='utf8mb4')
+connector = mysql.connector.connect(
+    user='root', password='wlcm2T4', host='localhost', database='root', charset='utf8mb4')
 cursor = connector.cursor()
+
 
 def open_sub_window(status_bar):
     """
@@ -34,7 +36,8 @@ def open_sub_window(status_bar):
     サブウィンドウを開く役割を果たします。canvasとstatus_barを引数として渡しています。
     """
     sub_window.create_sub_window(canvas, status_bar)
-    
+
+
 def delete_route_info():
     # 経路情報の削除処理を実装する
     delete.delete_window(canvas)
@@ -52,10 +55,9 @@ def open_path_selection_algorithm():
     route_names = []
 
     # 経路番号の少ない順に経路名を取得するクエリを実行
-    query = "SELECT DISTINCT 経路名 FROM route_data ORDER BY 経路番号 ASC"
+    query = "SELECT DISTINCT SQL_NO_CACHE 経路名 FROM route_data ORDER BY 経路番号 ASC"
     cursor.execute(query)
     results = cursor.fetchall()
-
 
     # 経路名を配列に格納
     for row in results:
@@ -71,7 +73,8 @@ def open_path_selection_algorithm():
         coordinates = []
 
         # 特定の項目名の座標x, yを順番が少ない順に取得するクエリを実行
-        query = "SELECT x, y FROM route_data WHERE 経路名 = '{}' ORDER BY 順番 ASC".format(selected_item)
+        query = "SELECT SQL_NO_CACHE x, y FROM route_data WHERE 経路名 = '{}' ORDER BY 順番 ASC".format(
+            selected_item)
         cursor.execute(query)
         results = cursor.fetchall()
 
@@ -89,28 +92,36 @@ def open_path_selection_algorithm():
         for i in range(len(coordinates) - 1):
             x1, y1 = coordinates[i]
             x2, y2 = coordinates[i + 1]
-            canvas.create_line(x1, y1, x2, y2, fill="red", dash=(4, 2), width=8, tags="root")
+            canvas.create_line(x1, y1, x2, y2, fill="red",
+                               dash=(4, 2), width=8, tags="root")
 
         canvas.delete("start")
         p1, p2 = coordinates[0]
-        canvas.create_image(p1, p2, anchor=tk.CENTER, image=start_photo, tag="start")
+        canvas.create_image(p1, p2, anchor=tk.CENTER,
+                            image=start_photo, tag="start")
         canvas.delete("gool")
         p3, p4 = coordinates[-1]
-        canvas.create_image(p3, p4, anchor=tk.CENTER, image=gool_photo, tag="gool")
+        canvas.create_image(p3, p4, anchor=tk.CENTER,
+                            image=gool_photo, tag="gool")
 
     # ドロップダウンメニューを作成
     selected_route.set("経路を選択")
-    dropdown = tk.OptionMenu(path_selection_window, selected_route, *route_names, command=handle_dropdown_selection)
+    dropdown = tk.OptionMenu(path_selection_window, selected_route,
+                             *route_names, command=handle_dropdown_selection)
     dropdown.pack(pady=20)
 
     # 経路選択ボタンを作成
-    select_button = tk.Button(path_selection_window, text="経路選択", command=handle_selection)
+    select_button = tk.Button(path_selection_window,
+                              text="経路選択", command=handle_selection)
     select_button.pack()
 
+
 def perform_processing(selected_route, coordinates):
-    Algorithm_test_window.create_Algorithm_window(canvas, selected_route, coordinates,status_bar)
+    Algorithm_test_window.create_Algorithm_window(
+        canvas, selected_route, coordinates, status_bar)
     print(f"Selected Route: {selected_route}")
     # Perform the desired processing here
+
 
 def select_action2(selected_action):
     """
@@ -141,13 +152,14 @@ def select_action2(selected_action):
         print("選択されたアクション2:", selected_action)
         # ここにその他のアクションの処理を追加するコードを記述します。
 
+
 def handle_click(event):
     """
     handle_click関数は、マウスのクリックイベントを処理するためのコールバック関数です。
     イベントオブジェクトからクリックされた位置座標を取得し、表示します。
     """
     # グローバル変数として宣言
-    global selected_value, start, gool, half,num
+    global selected_value, start, gool, half, num
     # クリックされた位置座標を取得
     x = event.x
     y = event.y
@@ -160,19 +172,22 @@ def handle_click(event):
         p1, p2 = start
         print(start)
         canvas.delete("start")
-        canvas.create_image(p1, p2, anchor=tk.CENTER, image=start_photo, tag="start")
+        canvas.create_image(p1, p2, anchor=tk.CENTER,
+                            image=start_photo, tag="start")
 
     elif selected_value == 2:
         num = num + 1
         half.append((x, y))
         for coordinate in half:
             x, y = coordinate
-            canvas.create_text(x, y, text=str(num), font=("Arial", 24),tag="flag")
+            canvas.create_text(x, y, text=str(
+                num), font=("Arial", 24), tag="flag")
     elif selected_value == 3:
         gool = (x, y)
         canvas.delete("gool")
-        canvas.create_image(x, y, anchor=tk.CENTER, image=gool_photo, tag="gool")
-        
+        canvas.create_image(x, y, anchor=tk.CENTER,
+                            image=gool_photo, tag="gool")
+
     root = []
     if start != (0, 0):
         root.append(start)
@@ -181,7 +196,7 @@ def handle_click(event):
             root.append(coordinate)
     if gool != (0, 0):
         root.append(gool)
-    
+
     # 現在描画されている線を削除
     canvas.delete("root")
 
@@ -189,8 +204,10 @@ def handle_click(event):
     for i in range(len(root) - 1):
         x1, y1 = root[i]
         x2, y2 = root[i + 1]
-        canvas.create_line(x1, y1, x2, y2, fill="red", dash=(4, 2), width=8, tags="root")
+        canvas.create_line(x1, y1, x2, y2, fill="red",
+                           dash=(4, 2), width=8, tags="root")
     print(selected_value)
+
 
 def change_image():
     """
@@ -199,7 +216,8 @@ def change_image():
     global image, photo
 
     # 画像の選択ダイアログを表示し、新しい画像ファイルを選択
-    new_image_path = tk.filedialog.askopenfilename(filetypes=[("Image Files", "*.jpg;*.jpeg;*.png")])
+    new_image_path = tk.filedialog.askopenfilename(
+        filetypes=[("Image Files", "*.jpg;*.jpeg;*.png")])
 
     # 新しい画像を読み込み、キャンバス上の画像を更新
     image = Image.open(new_image_path)
@@ -223,7 +241,8 @@ def handle_selection():
     coordinates = []
 
     # 特定の項目名の座標x, yを順番が少ない順に取得するクエリを実行
-    query = "SELECT x, y FROM route_data WHERE 経路名 = '{}' ORDER BY 順番 ASC".format(selected_item)
+    query = "SELECT x, y FROM route_data WHERE 経路名 = '{}' ORDER BY 順番 ASC".format(
+        selected_item)
     cursor.execute(query)
     results = cursor.fetchall()
 
@@ -242,7 +261,8 @@ def handle_selection():
     for i in range(len(coordinates) - 1):
         x1, y1 = coordinates[i]
         x2, y2 = coordinates[i + 1]
-        canvas.create_line(x1, y1, x2, y2, fill="red", dash=(4, 2), width=8, tags="root")
+        canvas.create_line(x1, y1, x2, y2, fill="red",
+                           dash=(4, 2), width=8, tags="root")
 
 
 """
@@ -257,6 +277,8 @@ window.title("無人搬送車制御アプリケーション ver1.0.0")
 window.geometry("880x600")  # ウィンドウサイズを固定
 
 # ボタンのコマンドとなる関数を定義
+
+
 def on_decision_button_click():
     global num
     # スタート地点かゴール地点が初期化されている場合、メッセージを表示して処理を中断
@@ -266,7 +288,7 @@ def on_decision_button_click():
     if gool == (0, 0):
         messagebox.showinfo("入力エラー", "ゴール地点を入力してください")
         return
-    
+
     # ボタンがクリックされたときの処理を記述
     route_name = simpledialog.askstring("経路名入力", "経路名を入力してください:")
     if route_name is None:
@@ -305,6 +327,7 @@ def on_decision_button_click():
     # 初期化
     initialize()
 
+
 # 画像の読み込み
 image_path = "image.jpg"
 image = Image.open(image_path)
@@ -328,6 +351,7 @@ def initialize():
     half = []
     gool = (0, 0)
 
+
 # キャンバスの作成
 canvas = tk.Canvas(window, width=image.width, height=image.height)
 canvas.pack(side=tk.LEFT)
@@ -339,24 +363,29 @@ window.config(menu=menubar)
 
 # ファイルメニュー
 file_menu = tk.Menu(menubar, tearoff=0)
-file_menu.add_command(label="搬送車信号テスト", command=lambda: open_sub_window(status_bar))
-file_menu.add_command(label="経路選択アルゴリズム", command=open_path_selection_algorithm)
+file_menu.add_command(
+    label="搬送車信号テスト", command=lambda: open_sub_window(status_bar))
+file_menu.add_command(label="経路選択アルゴリズム",
+                      command=open_path_selection_algorithm)
 file_menu.add_command(label="経路情報削除", command=delete_route_info)
 file_menu.add_command(label="画像を変更", command=change_image)
 menubar.add_cascade(label="デバッグ", menu=file_menu)
 
 # メニューバーに座標を表示するラベルを追加
-status_bar = tk.Label(window, text="x座標: 0   y座標: 0   角度: 0", bd=1, relief=tk.SUNKEN, anchor=tk.W)
+status_bar = tk.Label(window, text="x座標: 0   y座標: 0   角度: 0",
+                      bd=1, relief=tk.SUNKEN, anchor=tk.W)
 status_bar.pack(side=tk.BOTTOM, fill=tk.X)
 
 # 決定ボタンを作成
-decision_button = tk.Button(window, text="決定", command=on_decision_button_click)
+decision_button = tk.Button(
+    window, text="決定", command=on_decision_button_click)
 decision_button.pack(side=tk.RIGHT)
 
 # 経路作成用ドロップダウンメニューの作成
 action_var2 = tk.StringVar()
 action_var2.set("アクションを選択")
-action_menu2 = tk.OptionMenu(window, action_var2, "スタート地点", "中間地点", "ゴール地点", command=select_action2)
+action_menu2 = tk.OptionMenu(
+    window, action_var2, "スタート地点", "中間地点", "ゴール地点", command=select_action2)
 action_menu2.pack(side=tk.RIGHT)
 
 # ドロップダウンメニューを作成
@@ -364,9 +393,10 @@ action_menu2.pack(side=tk.RIGHT)
 route_names = []
 
 # 経路番号の少ない順に経路名を取得するクエリを実行
-query = "SELECT DISTINCT 経路名 FROM route_data ORDER BY 経路番号 ASC"
+query = "SELECT DISTINCT SQL_NO_CACHE 経路名 FROM route_data ORDER BY 経路番号 ASC"
 cursor.execute(query)
 results = cursor.fetchall()
+connector.commit()
 
 # 経路名を配列に格納
 for row in results:
@@ -378,7 +408,7 @@ selected_route = tk.StringVar()
 # 選択されている経路選択用ドロップダウンメニューを見る変数
 selected_value = 0
 
-#中間座標の数字
+# 中間座標の数字
 num = 0
 
 # マウスクリックイベントのバインド
@@ -410,7 +440,7 @@ gool_photo = ImageTk.PhotoImage(gool_image)
 
 
 def handle_submit():
-    global start,half,gool
+    global start, half, gool
     x = x_entry.get()
     y = y_entry.get()
     if selected_value == 1:
@@ -418,17 +448,20 @@ def handle_submit():
         p1, p2 = start
         print(start)
         canvas.delete("start")
-        canvas.create_image(p1, p2, anchor=tk.CENTER, image=start_photo, tag="start")
+        canvas.create_image(p1, p2, anchor=tk.CENTER,
+                            image=start_photo, tag="start")
 
     elif selected_value == 2:
         half.append((x, y))
         for coordinate in half:
             x, y = coordinate
-            canvas.create_image(x, y, anchor=tk.CENTER, image=half_photo, tag="flag")
+            canvas.create_image(x, y, anchor=tk.CENTER,
+                                image=half_photo, tag="flag")
     elif selected_value == 3:
         gool = (x, y)
         canvas.delete("gool")
-        canvas.create_image(x, y, anchor=tk.CENTER, image=gool_photo, tag="gool")
+        canvas.create_image(x, y, anchor=tk.CENTER,
+                            image=gool_photo, tag="gool")
 
     root = []
     if start != (0, 0):
@@ -438,7 +471,7 @@ def handle_submit():
             root.append(coordinate)
     if gool != (0, 0):
         root.append(gool)
-    
+
     # 現在描画されている線を削除
     canvas.delete("root")
 
@@ -446,7 +479,9 @@ def handle_submit():
     for i in range(len(root) - 1):
         x1, y1 = root[i]
         x2, y2 = root[i + 1]
-        canvas.create_line(x1, y1, x2, y2, fill="red", dash=(4, 2), width=8, tags="root")
+        canvas.create_line(x1, y1, x2, y2, fill="red",
+                           dash=(4, 2), width=8, tags="root")
+
 
 # x座標の入力欄
 x_label = tk.Label(window, text="x座標:")
