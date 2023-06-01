@@ -13,7 +13,7 @@ def delete_window(canvas):
     delete_window.title("経路情報削除")
 
     # 経路名の取得クエリを実行
-    query = "SELECT DISTINCT 経路名 FROM route_data ORDER BY 経路番号 ASC"
+    query = "SELECT DISTINCT SQL_NO_CACHE 経路名 FROM route_data ORDER BY 経路番号 ASC"
     cursor.execute(query)
     results = cursor.fetchall()
 

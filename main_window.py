@@ -69,7 +69,16 @@ def open_path_selection_algorithm():
     path_selection_window.geometry("400x200")
 
     def handle_dropdown_selection(*args):
-        selected_item = selected_route.get()
+        query = "SELECT DISTINCT SQL_NO_CACHE 経路名 FROM route_data ORDER BY 経路番号 ASC"
+        cursor.execute(query)
+        results = cursor.fetchall()
+
+        # 経路名を配列に格納
+        route_names = []
+        for row in results:
+            route_names.append(row[0])
+            
+        selected_item = route_names
         coordinates = []
 
         # 特定の項目名の座標x, yを順番が少ない順に取得するクエリを実行
