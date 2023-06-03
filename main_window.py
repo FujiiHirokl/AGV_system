@@ -60,25 +60,21 @@ def open_path_selection_algorithm():
     results = cursor.fetchall()
 
     # 経路名を配列に格納
+    i = 0
     for row in results:
-        route_names.append(row[0])
+        i = i + 1
+        route_names.append(str(i)+": "+row[0])
 
     # ドロップダウンメニューを作成するための新しいウィンドウを作成
     path_selection_window = tk.Toplevel(window)
     path_selection_window.title("経路選択アルゴリズム")
     path_selection_window.geometry("400x200")
-
+    
     def handle_dropdown_selection(*args):
         query = "SELECT DISTINCT SQL_NO_CACHE 経路名 FROM route_data ORDER BY 経路番号 ASC"
         cursor.execute(query)
         results = cursor.fetchall()
 
-        # 経路名を配列に格納
-        route_names = []
-        for row in results:
-            route_names.append(row[0])
-            
-        selected_item = route_names
         coordinates = []
 
         # 特定の項目名の座標x, yを順番が少ない順に取得するクエリを実行
@@ -297,6 +293,10 @@ def on_decision_button_click():
     if gool == (0, 0):
         messagebox.showinfo("入力エラー", "ゴール地点を入力してください")
         return
+    if selected_number.get() == "":
+        messagebox.showinfo("入力エラー", "登録する番号を選択してください")
+        return
+
 
     # ボタンがクリックされたときの処理を記述
     route_name = simpledialog.askstring("経路名入力", "経路名を入力してください:")
@@ -309,6 +309,13 @@ def on_decision_button_click():
     query = "SELECT MAX(経路番号) FROM route_data"
     cursor.execute(query)
     result = cursor.fetchone()[0]
+    
+    
+    query = "DELETE FROM route_data WHERE 経路番号 = "+ selected_number.get()+";"
+    # クエリを実行
+    cursor.execute(query)
+    connector.commit()
+    
     max_route_number = result if result else 0
     max_route_number += 1
 
@@ -322,7 +329,7 @@ def on_decision_button_click():
     for coordinate in root:
         i += 1
         x, y = coordinate
-        values = (max_route_number, route_name, i, x, y)
+        values = (selected_number.get(), route_name, i, x, y)
         insert_query = "INSERT INTO route_data (経路番号, 経路名, 順番, x, y) VALUES (%s, %s, %s, %s, %s)"
         cursor.execute(insert_query, values)
 
@@ -396,6 +403,7 @@ action_var2.set("アクションを選択")
 action_menu2 = tk.OptionMenu(
     window, action_var2, "スタート地点", "中間地点", "ゴール地点", command=select_action2)
 action_menu2.pack(side=tk.RIGHT)
+
 
 # ドロップダウンメニューを作成
 # 経路名を格納する配列
@@ -507,6 +515,14 @@ y_entry.pack()
 # 送信ボタン
 submit_button = tk.Button(window, text="送信", command=handle_submit)
 submit_button.pack()
+
+# selected_numberの初期値を設定
+selected_number = tk.StringVar(window)
+selected_number.set("")  # 初期値を"1"に設定
+
+# オプションメニューの作成
+dropdown = tk.OptionMenu(window, selected_number, "1", "2", "3", "4", "5")
+dropdown.pack()
 
 # ウィンドウのメインループ
 window.mainloop()

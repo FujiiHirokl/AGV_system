@@ -73,43 +73,11 @@ def delete_window(canvas):
         cursor.execute(query)
         connector.commit()
         
-        
-        # 指定した経路番号
-        specified_route_number = 1
-
-        # 指定した経路番号以降の経路番号を取得
-        query = "SELECT SQL_NO_CACHE 経路番号 FROM route_data WHERE 経路番号 >= {} ORDER BY 経路番号;".format(specified_route_number)
-        cursor.execute(query)
-        results = cursor.fetchall()
-        expected_route_number = specified_route_number
-        for row in results:
-            current_route_number = row[0]
-            if current_route_number != expected_route_number:
-                missing_route_number = expected_route_number
-                break
-            expected_route_number += 1
-        else:
-            # 指定した経路番号以降のすべての経路番号が存在する場合
-            missing_route_number = expected_route_number
-            
-        print("最初に存在しない経路番号:", missing_route_number)
-        
-        
-        # 指定した番号以降の経路番号をマイナス1する
-        specified_route_number = missing_route_number
-
-        # 指定した番号以降の経路番号をマイナス1するクエリを実行
-        query = "UPDATE route_data SET 経路番号 = 経路番号 - 1 WHERE 経路番号 >= {};".format(specified_route_number)
-        cursor.execute(query)
-        connector.commit()
-
-        # 指定した経路番号以降の経路番号を取得
-        query = "SELECT SQL_NO_CACHE 経路番号 FROM route_data WHERE 経路番号 >= {} ORDER BY 経路番号;".format(specified_route_number)
-        cursor.execute(query)
-        results = cursor.fetchall()
         canvas.delete("start")
         canvas.delete("root")
         canvas.delete("gool")
+        # ウィンドウを閉じる
+        delete_window.destroy()
         
 
     # 選択変更時のイベントハンドラを設定
