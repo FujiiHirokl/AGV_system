@@ -54,6 +54,7 @@ def open_path_selection_algorithm():
     # 経路名を格納する配列
     route_names = []
 
+
     # 経路番号の少ない順に経路名を取得するクエリを実行
     query = "SELECT DISTINCT SQL_NO_CACHE 経路名 FROM route_data ORDER BY 経路番号 ASC"
     cursor.execute(query)
@@ -63,7 +64,7 @@ def open_path_selection_algorithm():
     i = 0
     for row in results:
         i = i + 1
-        route_names.append(str(i)+": "+row[0])
+        route_names.append(row[0])
 
     # ドロップダウンメニューを作成するための新しいウィンドウを作成
     path_selection_window = tk.Toplevel(window)
@@ -80,6 +81,7 @@ def open_path_selection_algorithm():
         # 特定の項目名の座標x, yを順番が少ない順に取得するクエリを実行
         query = "SELECT SQL_NO_CACHE x, y FROM route_data WHERE 経路名 = '{}' ORDER BY 順番 ASC".format(
             selected_item)
+        print(selected_item)
         cursor.execute(query)
         results = cursor.fetchall()
 
@@ -128,35 +130,6 @@ def perform_processing(selected_route, coordinates):
     # Perform the desired processing here
 
 
-def select_action2(selected_action):
-    """
-    select_action2関数は、新しいドロップダウンメニューの選択イベントを処理するためのコールバック関数です。
-    選択されたアクションを取得し、それに応じて異なる処理を行います。
-    """
-    global selected_value
-    if selected_action == "スタート地点":
-        # スタート地点の処理
-        print("スタート地点が選択されました。")
-        # ここにスタート地点の処理を追加するコードを記述します。
-        selected_value = 1
-
-    elif selected_action == "中間地点":
-        # ゴール地点の処理
-        print("ゴール地点が選択されました。")
-        # ここにゴール地点の処理を追加するコードを記述します。
-        selected_value = 2
-
-    elif selected_action == "ゴール地点":
-        # 中間地点の処理
-        print("中間地点が選択されました。")
-        # ここに中間地点の処理を追加するコードを記述します。
-        selected_value = 3
-
-    else:
-        # その他のアクションの処理
-        print("選択されたアクション2:", selected_action)
-        # ここにその他のアクションの処理を追加するコードを記述します。
-
 
 def handle_click(event):
     """
@@ -170,6 +143,7 @@ def handle_click(event):
     y = event.y
     coordinate_label.config(text=f"クリック座標: ({x}, {y})")
     print("クリック位置座標:", x, y)
+    
 
     # 画像を読み込む
     if selected_value == 1:
@@ -181,12 +155,11 @@ def handle_click(event):
                             image=start_photo, tag="start")
 
     elif selected_value == 2:
-        num = num + 1
+        num += 1
         half.append((x, y))
-        for coordinate in half:
+        for i, coordinate in enumerate(half):
             x, y = coordinate
-            canvas.create_text(x, y, text=str(
-                num), font=("Arial", 24), tag="flag")
+            canvas.create_text(x, y, text=str(i+1), font=("Arial", 24), tag="flag")
     elif selected_value == 3:
         gool = (x, y)
         canvas.delete("gool")
@@ -196,6 +169,7 @@ def handle_click(event):
     root = []
     if start != (0, 0):
         root.append(start)
+        
     for coordinate in half:
         if coordinate != (0, 0):
             root.append(coordinate)
@@ -395,15 +369,7 @@ status_bar.pack(side=tk.BOTTOM, fill=tk.X)
 # 決定ボタンを作成
 decision_button = tk.Button(
     window, text="決定", command=on_decision_button_click)
-decision_button.pack(side=tk.RIGHT)
-
-# 経路作成用ドロップダウンメニューの作成
-action_var2 = tk.StringVar()
-action_var2.set("アクションを選択")
-action_menu2 = tk.OptionMenu(
-    window, action_var2, "スタート地点", "中間地点", "ゴール地点", command=select_action2)
-action_menu2.pack(side=tk.RIGHT)
-
+decision_button.pack(side=tk.BOTTOM)
 
 # ドロップダウンメニューを作成
 # 経路名を格納する配列
@@ -513,8 +479,41 @@ y_entry = tk.Entry(window)
 y_entry.pack()
 
 # 送信ボタン
-submit_button = tk.Button(window, text="送信", command=handle_submit)
+submit_button = tk.Button(window, text="座標決定", command=handle_submit)
 submit_button.pack()
+
+
+def show_selection():
+    global selected_value
+    selected_option = var.get()
+    if selected_option == 1:
+        label.config(text="Option 1 selected", foreground="green")
+        selected_value = 1
+    elif selected_option == 2:
+        label.config(text="Option 2 selected", foreground="blue")
+        selected_value = 2
+    elif selected_option == 3:
+        label.config(text="Option 3 selected", foreground="red")
+        selected_value = 3
+
+
+# ラジオボタンの選択結果を格納するための変数を作成
+var = tk.IntVar()
+
+# 選択結果を表示するためのラベルを作成
+label = ttk.Label(window, text="Please make a selection", foreground="gray")
+label.pack(pady=10)
+
+# ラジオボタンを作成
+option1 = ttk.Radiobutton(window, text="スタート", variable=var, value=1, command=show_selection)
+option1.pack()
+
+option2 = ttk.Radiobutton(window, text="中間地点", variable=var, value=2, command=show_selection)
+option2.pack()
+
+option3 = ttk.Radiobutton(window, text="ゴール", variable=var, value=3, command=show_selection)
+option3.pack()
+
 
 # selected_numberの初期値を設定
 selected_number = tk.StringVar(window)
