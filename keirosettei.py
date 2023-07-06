@@ -13,6 +13,7 @@ import delete
 import tkinter.messagebox as messagebox
 from tkinter import messagebox, simpledialog
 from tkinter import ttk
+import math
 """
 データベース設計
 CREATE TABLE route_data (
@@ -22,6 +23,8 @@ CREATE TABLE route_data (
   順番 INT,
   x INT,
   y INT
+  一時停止 INT
+  角度 DECIMAL(5, 2)
 );
 """
 # MySQLデータベースへの接続
@@ -29,6 +32,43 @@ connector = mysql.connector.connect(
     user='root', password='wlcm2T4', host='localhost', database='root', charset='utf8mb4')
 cursor = connector.cursor()
 
+#角度計算関数
+
+import math
+
+import math
+
+def calculate_angle(x1, y1, x2, y2, x3, y3):
+    # 1つ目の座標から真ん中の座標へのベクトルの成分を求める
+    v1_x = x2 - x1
+    v1_y = y2 - y1
+
+    # 真ん中の座標から3つ目の座標へのベクトルの成分を求める
+    v2_x = x3 - x2
+    v2_y = y3 - y2
+
+    # ベクトルの内積を計算
+    dot_product = v1_x * v2_x + v1_y * v2_y
+
+    # ベクトルの大きさを計算
+    v1_length = math.sqrt(v1_x**2 + v1_y**2)
+    v2_length = math.sqrt(v2_x**2 + v2_y**2)
+
+    # ゼロ除算が発生する場合に角度を0として扱う
+    if v1_length * v2_length == 0:
+        return 0
+
+    # ラジアン単位の角度を計算
+    angle_rad = math.acos(dot_product / (v1_length * v2_length))
+
+    # 角度を度数法に変換
+    angle_deg = math.degrees(angle_rad)
+
+    # 座標1と座標2の線から見た座標2と座標3の線の角度が座標1と座標2の線の右側ならプラス、左側ならマイナスにする
+    if v1_x * v2_y - v1_y * v2_x < 0:
+        angle_deg *= -1
+
+    return -angle_deg
 
 
 def delete_route_info():
@@ -50,7 +90,7 @@ def handle_click(event):
     イベントオブジェクトからクリックされた位置座標を取得し、表示します。
     """
     # グローバル変数として宣言
-    global selected_value, start, gool, half, num
+    global selected_value, start, gool, half, num, stop, angles
     # クリックされた位置座標を取得
     x = event.x
     y = event.y
@@ -72,8 +112,18 @@ def handle_click(event):
         half.append((x, y))
         for i, coordinate in enumerate(half):
             x, y = coordinate
-            canvas.create_text(x, y, text=str(i+1), font=("Arial", 24), tag="flag")
+            canvas.create_text(x, y, text=str(i+1), font=("Arial", 24
+                                                          ), tag="flag")
     elif selected_value == 3:
+        canvas.create_image(x, y, anchor=tk.CENTER,
+                            image=stop_photo, tag="stop")
+        num += 1
+        half.append((x, y))
+        stop.append(num + 1)
+        for i, coordinate in enumerate(half):
+            x, y = coordinate
+            canvas.create_text(x, y, text=str(i+1), font=("Arial", 24), tag="flag")
+    elif selected_value == 4:
         gool = (x, y)
         canvas.delete("gool")
         canvas.create_image(x, y, anchor=tk.CENTER,
@@ -91,6 +141,18 @@ def handle_click(event):
 
     # 現在描画されている線を削除
     canvas.delete("root")
+    canvas.delete("angle")
+
+    if len(root) >= 3:
+        start_index = len(root) - 3  # 最後の3つの座標のインデックスの開始位置
+        for i in range(start_index, len(root)-2):
+            x1, y1 = root[i]
+            x2, y2 = root[i+1]
+            x3, y3 = root[i+2]
+            angle = calculate_angle(x1, y1, x2, y2, x3, y3)
+            angles.append(round(angle,2))
+        print(angles)
+            
 
     # 座標情報を利用して線を描画
     for i in range(len(root) - 1):
@@ -98,7 +160,13 @@ def handle_click(event):
         x2, y2 = root[i + 1]
         canvas.create_line(x1, y1, x2, y2, fill="red",
                            dash=(4, 2), width=8, tags="root")
+        if(i >= 1):
+            canvas.create_text(x1+30, y1+30, text=str(round(angles[i-1], 2)), font=("Arial", 12), tag="angle")
+        
     print(selected_value)
+    
+            
+            
 
 
 def change_image():
@@ -237,11 +305,22 @@ def on_select_button_click():
         cursor.execute(insert_query, values)
         connector.commit()
 
+    print(11111)
+    print("selected_number:"+selected_number.get())
+ 
+    for stop_num in stop:
+        query = "UPDATE route_data SET 一時停止 = 1 WHERE 順番 = %s and 経路番号 = %s"
+        cursor.execute(query, (stop_num,selected_number.get()))
+        connector.commit()
+ 
+    
+
 
     print(root)
     canvas.delete("start")
     canvas.delete("flag")
     canvas.delete("gool")
+    canvas.delete("stop")
     canvas.delete("root")
     # 初期化
     initialize()
@@ -263,6 +342,7 @@ start = (0, 0)
 # 中間地点設定用の配列
 half = []
 
+stop = []
 # ゴール地点設定用の配列
 gool = (0, 0)
 
@@ -298,6 +378,8 @@ status_bar.pack(side=tk.BOTTOM, fill=tk.X)
 # ドロップダウンメニューを作成
 # 経路名を格納する配列
 route_names = []
+
+angles =[]
 
 # 経路番号の少ない順に経路名を取得するクエリを実行
 query = "SELECT DISTINCT SQL_NO_CACHE 経路名 FROM route_data ORDER BY 経路番号 ASC"
@@ -340,6 +422,11 @@ half_image = Image.open(half_image_path)
 half_image = half_image.resize((40, 40))
 half_photo = ImageTk.PhotoImage(half_image)
 
+stop_image_path = "itiziteisi.png"
+stop_image = Image.open(stop_image_path)
+stop_image = stop_image.resize((40, 40))
+stop_photo = ImageTk.PhotoImage(stop_image)
+
 gool_image_path = "gool.jpg"
 gool_image = Image.open(gool_image_path)
 gool_image = gool_image.resize((40, 40))
@@ -347,7 +434,7 @@ gool_photo = ImageTk.PhotoImage(gool_image)
 
 
 def handle_submit():
-    global start, half, gool
+    global start, half, stop, gool,num
     x = x_entry.get()
     y = y_entry.get()
     if selected_value == 1:
@@ -359,12 +446,22 @@ def handle_submit():
                             image=start_photo, tag="start")
 
     elif selected_value == 2:
+        num += 1
         half.append((x, y))
-        for coordinate in half:
+        for i, coordinate in enumerate(half):
             x, y = coordinate
-            canvas.create_image(x, y, anchor=tk.CENTER,
-                                image=half_photo, tag="flag")
+            canvas.create_text(x, y, text=str(i+1), font=("Arial", 24
+                                                          ), tag="flag")
     elif selected_value == 3:
+        canvas.create_image(x, y, anchor=tk.CENTER,
+                            image=stop_photo, tag="stop")
+        num += 1
+        half.append((x, y))
+        stop.append(num + 1)
+        for i, coordinate in enumerate(half):
+            x, y = coordinate
+            canvas.create_text(x, y, text=str(i+1), font=("Arial", 24), tag="flag")
+    elif selected_value == 4:
         gool = (x, y)
         canvas.delete("gool")
         canvas.create_image(x, y, anchor=tk.CENTER,
@@ -373,12 +470,13 @@ def handle_submit():
     root = []
     if start != (0, 0):
         root.append(start)
+        
     for coordinate in half:
         if coordinate != (0, 0):
             root.append(coordinate)
     if gool != (0, 0):
         root.append(gool)
-
+        
     # 現在描画されている線を削除
     canvas.delete("root")
 
@@ -388,8 +486,6 @@ def handle_submit():
         x2, y2 = root[i + 1]
         canvas.create_line(x1, y1, x2, y2, fill="red",
                            dash=(4, 2), width=8, tags="root")
-
-
 
 def show_selection():
     global selected_value
@@ -403,6 +499,9 @@ def show_selection():
     elif selected_option == 3:
         label.config(text="Option 3 selected", foreground="red")
         selected_value = 3
+    elif selected_option == 4:
+        label.config(text="Option 4 selected", foreground="red")
+        selected_value = 4
 
 
 # ラジオボタンの選択結果を格納するための変数を作成
@@ -419,21 +518,30 @@ option1.pack()
 option2 = ttk.Radiobutton(window, text="中間地点", variable=var, value=2, command=show_selection)
 option2.pack()
 
-option3 = ttk.Radiobutton(window, text="ゴール", variable=var, value=3, command=show_selection)
+option3 = ttk.Radiobutton(window, text="一時停止", variable=var, value=3, command=show_selection)
 option3.pack()
 
+option4 = ttk.Radiobutton(window, text="ゴール", variable=var, value=4, command=show_selection)
+option4.pack()
+
+
+# x座標の入力欄とy座標の入力欄を同じ行に配置するフレームを作成
+input_frame = tk.Frame(window)
+input_frame.pack()
 
 # x座標の入力欄
-x_label = tk.Label(window, text="x座標:")
-x_label.pack()
-x_entry = tk.Entry(window)
-x_entry.pack()
+x_label = tk.Label(input_frame, text="座標(x,y):")
+x_label.pack(side="left")
+x_entry = tk.Entry(input_frame)
+x_entry = tk.Entry(input_frame, width=7)  # 幅を10に設定
+x_entry.pack(side="left")
 
 # y座標の入力欄
-y_label = tk.Label(window, text="y座標:")
-y_label.pack()
-y_entry = tk.Entry(window)
-y_entry.pack()
+y_label = tk.Label(input_frame)
+y_label.pack(side="left")
+y_entry = tk.Entry(input_frame)
+y_entry = tk.Entry(input_frame, width=7)  # 幅を10に設定
+y_entry.pack(side="left")
 
 # 座標決定ボタン
 submit_button = tk.Button(window, text="座標決定", command=handle_submit)
@@ -447,3 +555,4 @@ decision_button.pack()
 
 # ウィンドウのメインループ
 window.mainloop()
+

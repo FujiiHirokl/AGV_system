@@ -11,6 +11,8 @@ def delete_window(canvas):
     def on_window_close():
         canvas.delete("start")
         canvas.delete("root")
+        canvas.delete("stop")
+        canvas.delete("flag")
         canvas.delete("gool")
         delete_window.destroy()
 
@@ -61,6 +63,8 @@ def delete_window(canvas):
 
         # 現在描画されている線を削除
         canvas.delete("root")
+        canvas.delete("flag")
+        canvas.delete("stop")
 
         # キャンバスを更新して削除した線が即座に表示されないようにする
         canvas.update()
@@ -70,6 +74,7 @@ def delete_window(canvas):
             x1, y1 = coordinates[i]
             x2, y2 = coordinates[i + 1]
             canvas.create_line(x1, y1, x2, y2, fill="red", dash=(4, 2), width=8, tags="root")
+            canvas.create_text(x1, y1, text=str(i), font=("Arial", 24), tag="flag")
 
         canvas.delete("start")
         p1, p2 = coordinates[0]
@@ -77,6 +82,26 @@ def delete_window(canvas):
         canvas.delete("gool")
         p3, p4 = coordinates[-1]
         canvas.create_image(p3, p4, anchor=tk.CENTER, image=gool_photo, tag="gool")
+        
+        query = "SELECT x, y FROM route_data WHERE 経路名 = %s AND 一時停止 = 1"
+        cursor.execute(query, (format(selected_item.split(":")[1]),))
+        results = cursor.fetchall()
+
+        # トランザクションのコミット
+        connector.commit()
+        route_coordinates =[]
+        
+
+        # 結果を(x, y)形式の配列に格納
+        canvas.delete("stop")
+        for row in results:
+            print(row)
+            route_coordinates.append((row[0], row[1]))
+        
+        for i in range(len(route_coordinates)):
+            x1, y1 = route_coordinates[i]
+            canvas.create_image(x1, y1, anchor=tk.CENTER,image=stop_photo, tag="stop")
+        
 
     def handle_delete():
         selected_item = selected_route.get()
@@ -96,7 +121,9 @@ def delete_window(canvas):
 
         canvas.delete("start")
         canvas.delete("root")
+        canvas.delete("flag")
         canvas.delete("gool")
+        canvas.delete("stop")
         # ウィンドウを閉じる
         delete_window.destroy()
 
@@ -108,6 +135,11 @@ def delete_window(canvas):
     start_image = Image.open(start_image_path)
     start_image = start_image.resize((40, 40))
     start_photo = ImageTk.PhotoImage(start_image)
+    
+    stop_image_path = "itiziteisi.png"
+    stop_image = Image.open(stop_image_path)
+    stop_image = stop_image.resize((40, 40))
+    stop_photo = ImageTk.PhotoImage(stop_image)
 
     gool_image_path = "gool.jpg"
     gool_image = Image.open(gool_image_path)
