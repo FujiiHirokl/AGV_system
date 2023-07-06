@@ -14,6 +14,7 @@ def delete_window(canvas):
         canvas.delete("stop")
         canvas.delete("flag")
         canvas.delete("gool")
+        canvas.delete("angle")
         delete_window.destroy()
 
     # 新しいウィンドウを作成
@@ -54,17 +55,31 @@ def delete_window(canvas):
         cursor.execute(query)
         results = cursor.fetchall()
 
+
         # トランザクションのコミット
         connector.commit()
-
+        
         # 結果を(x, y)形式の配列に格納
         for row in results:
             coordinates.append((row[0], row[1]))
+        
+        angles =[]
+        
+        query = "SELECT 角度 FROM route_data WHERE 経路名 = '{}' AND 角度 IS NOT NULL ORDER BY 順番 ASC".format(selected_item.split(":")[1])
+        cursor.execute(query,)
+        results = cursor.fetchall()
+        connector.commit()
+        angles = [row[0] for row in results if row[0] is not None]
+
+        print(angles)
+
+
 
         # 現在描画されている線を削除
         canvas.delete("root")
         canvas.delete("flag")
         canvas.delete("stop")
+        canvas.delete("angle")
 
         # キャンバスを更新して削除した線が即座に表示されないようにする
         canvas.update()
@@ -75,6 +90,9 @@ def delete_window(canvas):
             x2, y2 = coordinates[i + 1]
             canvas.create_line(x1, y1, x2, y2, fill="red", dash=(4, 2), width=8, tags="root")
             canvas.create_text(x1, y1, text=str(i), font=("Arial", 24), tag="flag")
+            if(i >= 1):
+                canvas.create_text(x1+30, y1+30, text=str(round(angles[i-1], 2)), font=("Arial", 12), tag="angle")
+    
 
         canvas.delete("start")
         p1, p2 = coordinates[0]
@@ -124,6 +142,7 @@ def delete_window(canvas):
         canvas.delete("flag")
         canvas.delete("gool")
         canvas.delete("stop")
+        canvas.delete("angle")
         # ウィンドウを閉じる
         delete_window.destroy()
 

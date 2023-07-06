@@ -40,12 +40,12 @@ import math
 
 def calculate_angle(x1, y1, x2, y2, x3, y3):
     # 1つ目の座標から真ん中の座標へのベクトルの成分を求める
-    v1_x = x2 - x1
-    v1_y = y2 - y1
+    v1_x = int(x2) - int(x1)
+    v1_y = int(y2) - int(y1)
 
     # 真ん中の座標から3つ目の座標へのベクトルの成分を求める
-    v2_x = x3 - x2
-    v2_y = y3 - y2
+    v2_x = int(x3) - int(x2)
+    v2_y = int(y3) - int(y2)
 
     # ベクトルの内積を計算
     dot_product = v1_x * v2_x + v1_y * v2_y
@@ -143,6 +143,7 @@ def handle_click(event):
     canvas.delete("root")
     canvas.delete("angle")
 
+    #角度計算
     if len(root) >= 3:
         start_index = len(root) - 3  # 最後の3つの座標のインデックスの開始位置
         for i in range(start_index, len(root)-2):
@@ -312,8 +313,12 @@ def on_select_button_click():
         query = "UPDATE route_data SET 一時停止 = 1 WHERE 順番 = %s and 経路番号 = %s"
         cursor.execute(query, (stop_num,selected_number.get()))
         connector.commit()
- 
     
+    for a in range(len(angles) + 1):
+        if(a > 0):
+            query = "UPDATE route_data SET 角度 = %s WHERE 順番 = %s and 経路番号 = %s"
+            cursor.execute(query, (angles[a - 1], a + 1, selected_number.get()))
+            connector.commit()
 
 
     print(root)
@@ -322,6 +327,7 @@ def on_select_button_click():
     canvas.delete("gool")
     canvas.delete("stop")
     canvas.delete("root")
+    canvas.delete("angle")
     # 初期化
     initialize()
     messagebox.showinfo("登録完了", "経路登録が完了しました。")
@@ -479,6 +485,18 @@ def handle_submit():
         
     # 現在描画されている線を削除
     canvas.delete("root")
+    canvas.delete("angle")
+
+    #角度計算
+    if len(root) >= 3:
+        start_index = len(root) - 3  # 最後の3つの座標のインデックスの開始位置
+        for i in range(start_index, len(root)-2):
+            x1, y1 = root[i]
+            x2, y2 = root[i+1]
+            x3, y3 = root[i+2]
+            angle = calculate_angle(x1, y1, x2, y2, x3, y3)
+            angles.append(round(angle,2))
+        print(angles)
 
     # 座標情報を利用して線を描画
     for i in range(len(root) - 1):
@@ -486,6 +504,8 @@ def handle_submit():
         x2, y2 = root[i + 1]
         canvas.create_line(x1, y1, x2, y2, fill="red",
                            dash=(4, 2), width=8, tags="root")
+        if(i >= 1):
+            canvas.create_text(x1+30, y1+30, text=str(round(angles[i-1], 2)), font=("Arial", 12), tag="angle")
 
 def show_selection():
     global selected_value
