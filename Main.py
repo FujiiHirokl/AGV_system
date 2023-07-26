@@ -1,19 +1,23 @@
-# ファイル: main_window
+# ファイル: Main.py
 # 作成者: 藤井広輝
 # 更新日: 2023/5/20
-# 説明: AGV監視システムのメイン
+# 説明: AGV経路登録システムのメイン
 
 # 必要なライブラリをインポート
 import mysql.connector
 import tkinter as tk
 from PIL import ImageTk, Image
-import sub_window
-import Algorithm_test_window
-import delete
-import tkinter.messagebox as messagebox
-from tkinter import messagebox, simpledialog
+from tkinter import messagebox
 from tkinter import ttk
-import math
+
+# 自作モジュールから必要な部分をインポート
+from global_variable import selected_value, selected_number, route_name_entry, num, start, half, stop, gool, route_names, angles
+import algorithm_test_window
+import delete
+import agv_location
+import image_resize
+import route_path_functions
+import draw_line
 """
 データベース設計
 CREATE TABLE route_data (
@@ -27,147 +31,61 @@ CREATE TABLE route_data (
   角度 DECIMAL(5, 2)
 );
 """
+
 # MySQLデータベースへの接続
-connector = mysql.connector.connect(
-    user='root', password='wlcm2T4', host='localhost', database='root', charset='utf8mb4')
+connector = mysql.connector.connect(user='root', password='wlcm2T4', host='localhost', database='root', charset='utf8mb4')
 cursor = connector.cursor()
 
-#角度計算関数
-
-import math
-
-import math
-
-def calculate_angle(x1, y1, x2, y2, x3, y3):
-    # 1つ目の座標から真ん中の座標へのベクトルの成分を求める
-    v1_x = int(x2) - int(x1)
-    v1_y = int(y2) - int(y1)
-
-    # 真ん中の座標から3つ目の座標へのベクトルの成分を求める
-    v2_x = int(x3) - int(x2)
-    v2_y = int(y3) - int(y2)
-
-    # ベクトルの内積を計算
-    dot_product = v1_x * v2_x + v1_y * v2_y
-
-    # ベクトルの大きさを計算
-    v1_length = math.sqrt(v1_x**2 + v1_y**2)
-    v2_length = math.sqrt(v2_x**2 + v2_y**2)
-
-    # ゼロ除算が発生する場合に角度を0として扱う
-    if v1_length * v2_length == 0:
-        return 0
-
-    # ラジアン単位の角度を計算
-    angle_rad = math.acos(dot_product / (v1_length * v2_length))
-
-    # 角度を度数法に変換
-    angle_deg = math.degrees(angle_rad)
-
-    # 座標1と座標2の線から見た座標2と座標3の線の角度が座標1と座標2の線の右側ならプラス、左側ならマイナスにする
-    if v1_x * v2_y - v1_y * v2_x < 0:
-        angle_deg *= -1
-
-    return -angle_deg
-
-
 def delete_route_info():
-    # 経路情報の削除処理を実装する
+    """経路情報削除windowが閉じられたときの処理"""
+    # 経路情報の削除処理
     delete.delete_window(canvas)
 
 
 def perform_processing(selected_route, coordinates):
-    Algorithm_test_window.create_Algorithm_window(
+    algorithm_test_window.create_Algorithm_window(
         canvas, selected_route, coordinates, status_bar)
     print(f"Selected Route: {selected_route}")
-    # Perform the desired processing here
-
+    
 
 
 def handle_click(event):
-    """
-    handle_click関数は、マウスのクリックイベントを処理するためのコールバック関数です。
-    イベントオブジェクトからクリックされた位置座標を取得し、表示します。
+    """マウスのクリックイベントを処理するためのコールバック関数。
+
+    Args:
+        event (Event): イベントオブジェクト。マウスのクリックに関する情報が含まれています。
+            event.x (int): クリックされた位置のx座標。
+            event.y (int): クリックされた位置のy座標。
     """
     # グローバル変数として宣言
     global selected_value, start, gool, half, num, stop, angles
-    # クリックされた位置座標を取得
-    x = event.x
-    y = event.y
-    coordinate_label.config(text=f"クリック座標: ({x}, {y})")
-    print("クリック位置座標:", x, y)
-    
 
-    # 画像を読み込む
+    # クリック座標を表示
+    coordinate_label.config(text=f"クリック座標: ({event.x}, {event.y})")
+    print("クリック位置座標:", event.x, event.y)
+
+    # 画像を読み込み、対応する関数を呼び出す
     if selected_value == 1:
-        start = (x, y)
-        p1, p2 = start
-        print(start)
-        canvas.delete("start")
-        canvas.create_image(p1, p2, anchor=tk.CENTER,
-                            image=start_photo, tag="start")
-
+        start = route_path_functions.handle_start(event.x, event.y, start_photo, canvas)
     elif selected_value == 2:
-        num += 1
-        half.append((x, y))
-        for i, coordinate in enumerate(half):
-            x, y = coordinate
-            canvas.create_text(x, y, text=str(i+1), font=("Arial", 24
-                                                          ), tag="flag")
+        route_path_functions.handle_half(event.x, event.y, canvas, num, half)
     elif selected_value == 3:
-        canvas.create_image(x, y, anchor=tk.CENTER,
-                            image=stop_photo, tag="stop")
-        num += 1
-        half.append((x, y))
-        stop.append(num + 1)
-        for i, coordinate in enumerate(half):
-            x, y = coordinate
-            canvas.create_text(x, y, text=str(i+1), font=("Arial", 24), tag="flag")
+        route_path_functions.handle_stop(event.x, event.y, canvas, num, half, stop, stop_photo)
     elif selected_value == 4:
-        gool = (x, y)
-        canvas.delete("gool")
-        canvas.create_image(x, y, anchor=tk.CENTER,
-                            image=gool_photo, tag="gool")
+        gool = route_path_functions.handle_goal(event.x, event.y, gool_photo, canvas)
 
+    # 経路をまとめる
     root = []
-    if start != (0, 0):
-        root.append(start)
-        
-    for coordinate in half:
-        if coordinate != (0, 0):
-            root.append(coordinate)
-    if gool != (0, 0):
-        root.append(gool)
+    route_path_functions.root_set(start, half, gool, root)
 
     # 現在描画されている線を削除
     canvas.delete("root")
     canvas.delete("angle")
 
-    #角度計算
-    if len(root) >= 3:
-        start_index = len(root) - 3  # 最後の3つの座標のインデックスの開始位置
-        for i in range(start_index, len(root)-2):
-            x1, y1 = root[i]
-            x2, y2 = root[i+1]
-            x3, y3 = root[i+2]
-            angle = calculate_angle(x1, y1, x2, y2, x3, y3)
-            angles.append(round(angle,2))
-        print(angles)
-            
+    # 角度描写と線描写
+    draw_line.angle_picture(root, angles)
+    draw_line.line_picture(root, canvas, angles)
 
-    # 座標情報を利用して線を描画
-    for i in range(len(root) - 1):
-        x1, y1 = root[i]
-        x2, y2 = root[i + 1]
-        canvas.create_line(x1, y1, x2, y2, fill="red",
-                           dash=(4, 2), width=8, tags="root")
-        if(i >= 1):
-            canvas.create_text(x1+30, y1+30, text=str(round(angles[i-1], 2)), font=("Arial", 12), tag="angle")
-        
-    print(selected_value)
-    
-            
-            
 
 
 def change_image():
@@ -195,9 +113,7 @@ def handle_selection():
     """
     global coordinates, selected_item
     selected_item = selected_route.get()
-    print(selected_item)
-    # 選択された項目に基づいた処理を行う
-    # ここに処理のコードを記述してください
+
     # 結果を格納する配列
     coordinates = []
 
@@ -211,10 +127,6 @@ def handle_selection():
     for row in results:
         coordinates.append((row[0], row[1]))
 
-    # 結果の出力
-    for coordinate in coordinates:
-        print(coordinate)
-
     # 現在描画されている線を削除
     canvas.delete("root")
 
@@ -226,25 +138,17 @@ def handle_selection():
                            dash=(4, 2), width=8, tags="root")
 
 
-"""
-この部分はメインウィンドウの作成と設定を行っています。tkinterのTkクラスを使ってウィンドウを作成し、
-ウィンドウのタイトルやサイズを設定します。また、画像を読み込んで表示するためにtkinterのCanvasク
-ラスを使い、キャンバス上に画像を表示します。メニューバーやラベル、オプションメニューなども追加し
-ています。最後に、マウスクリックイベントのバインドとウィンドウのメインループを開始します。
-"""
-# ウィンドウの作成
-window = tk.Tk()
-window.title("無人搬送車制御アプリケーション ver1.0.0")
-window.geometry("880x600")  # ウィンドウサイズを固定
 
-# ボタンのコマンドとなる関数を定義
-
-
-route_name_entry = None
-selected_number = None
 
 def on_decision_button_click():
-    global num, route_name_entry, selected_number,select_window
+    """
+    ユーザーが決定ボタンをクリックしたときの処理を行うコールバック関数です。
+    スタート地点かゴール地点が初期化されている場合、メッセージを表示して処理を中断します。
+    それ以外の場合、新しいウィンドウを作成し、経路名の入力とオプションメニューの設定を行います。
+    決定ボタンをクリックすると、`on_select_button_click` 関数が呼び出されます。
+    """
+    global num, route_name_entry, selected_number, select_window
+
     # スタート地点かゴール地点が初期化されている場合、メッセージを表示して処理を中断
     if start == (0, 0):
         messagebox.showinfo("入力エラー", "スタート地点を入力してください")
@@ -252,8 +156,8 @@ def on_decision_button_click():
     if gool == (0, 0):
         messagebox.showinfo("入力エラー", "ゴール地点を入力してください")
         return
-    
-    # ウィンドウの作成
+
+    # 新しいウィンドウの作成
     select_window = tk.Tk()
 
     # ラベルとエントリーの作成
@@ -274,28 +178,29 @@ def on_decision_button_click():
 
     num = 0
 
-
 def on_select_button_click():
-    global route_name_entry, selected_number,select_window
+    """
+    ユーザーが選択ボタンをクリックしたときの処理を行うコールバック関数です。
+    経路番号の最大値を取得し、選択された経路番号に基づいてデータベースの更新を行います。
+    また、入力された座標情報をデータベースに挿入します。
+    最後に、描画されていた線と画像をキャンバスから削除して、初期化を行い、登録完了メッセージを表示します。
+    """
+    global route_name_entry, selected_number, select_window
+
     # 経路番号の最大値を取得するクエリを実行
     query = "SELECT MAX(経路番号) FROM route_data"
     cursor.execute(query)
     result = cursor.fetchone()[0]
-    
 
-    query = "DELETE FROM route_data WHERE 経路番号 = "+ selected_number.get() + ";"
-    # クエリを実行
+    # 選択された経路番号に基づいてデータベースの更新を行うクエリを実行
+    query = "DELETE FROM route_data WHERE 経路番号 = " + selected_number.get() + ";"
     cursor.execute(query)
     connector.commit()
-    
+
     max_route_number = result if result else 0
     max_route_number += 1
 
-    root = []
-    root.append(start)
-    for coordinate in half:
-        root.append(coordinate)
-    root.append(gool)
+    root = [start] + half + [gool]
 
     i = 0
     for coordinate in root:
@@ -306,20 +211,16 @@ def on_select_button_click():
         cursor.execute(insert_query, values)
         connector.commit()
 
-    print(11111)
-    print("selected_number:"+selected_number.get())
- 
     for stop_num in stop:
         query = "UPDATE route_data SET 一時停止 = 1 WHERE 順番 = %s and 経路番号 = %s"
-        cursor.execute(query, (stop_num,selected_number.get()))
+        cursor.execute(query, (stop_num, selected_number.get()))
         connector.commit()
-    
+
     for a in range(len(angles) + 1):
-        if(a > 0):
+        if a > 0:
             query = "UPDATE route_data SET 角度 = %s WHERE 順番 = %s and 経路番号 = %s"
             cursor.execute(query, (angles[a - 1], a + 1, selected_number.get()))
             connector.commit()
-
 
     print(root)
     canvas.delete("start")
@@ -334,31 +235,64 @@ def on_select_button_click():
     select_window.destroy()
 
 
+def initialize():
+    """
+    特定のグローバルを初期化する関数
+    """
+    global start, half, gool
+    start = (0, 0)
+    half = []
+    gool = (0, 0)
     
+def handle_submit():
+    """_summary_
+    """
+    global start, half, stop, gool,num
+    x = x_entry.get()
+    y = y_entry.get()
+    
+    
+    # 画像を読み込み、対応する関数を呼び出す
+    if selected_value == 1:
+        start = route_path_functions.handle_start(x, y, start_photo, canvas)
+    elif selected_value == 2:
+        route_path_functions.handle_half(x, y, canvas, num, half)
+    elif selected_value == 3:
+        route_path_functions.handle_stop(x, y, canvas, num, half, stop, stop_photo)
+    elif selected_value == 4:
+        gool = route_path_functions.handle_goal(x, y, gool_photo, canvas)
+
+    root = []
+    
+    # 経路をまとめる
+    route_path_functions.root_set(start, half, gool, root)
+        
+    # 現在描画されている線を削除
+    canvas.delete("root")
+    canvas.delete("angle")
+
+    # 角度計算
+    draw_line.angle_picture(root, angles)
+    
+    # 線表示
+    draw_line.line_picture(root, canvas, angles)
+
+
+# ウィンドウの作成
+window = tk.Tk()
+window.title("無人搬送車制御アプリケーション ver1.0.0")
+window.geometry("880x600")  # ウィンドウサイズを固定  
     
 # 画像の読み込み
 image_path = "image.jpg"
 image = Image.open(image_path)
 image = image.resize((700, 500))
 photo = ImageTk.PhotoImage(image)
-
-# スタート地点設定用の配列
-start = (0, 0)
-
-# 中間地点設定用の配列
-half = []
-
-stop = []
-# ゴール地点設定用の配列
-gool = (0, 0)
-
-
-# 初期化関数
-def initialize():
-    global start, half, gool
-    start = (0, 0)
-    half = []
-    gool = (0, 0)
+# 標示画像の変形
+start_photo = image_resize.resize_image("start_flag.png", 40, 40)
+half_photo = image_resize.resize_image("half.png", 40, 40)
+stop_photo = image_resize.resize_image("itiziteisi.png", 40, 40)
+gool_photo = image_resize.resize_image("gool.jpg", 40, 40)
 
 
 # キャンバスの作成
@@ -381,11 +315,6 @@ status_bar = tk.Label(window, text="x座標: 0   y座標: 0   角度: 0",
                       bd=1, relief=tk.SUNKEN, anchor=tk.W)
 status_bar.pack(side=tk.BOTTOM, fill=tk.X)
 
-# ドロップダウンメニューを作成
-# 経路名を格納する配列
-route_names = []
-
-angles =[]
 
 # 経路番号の少ない順に経路名を取得するクエリを実行
 query = "SELECT DISTINCT SQL_NO_CACHE 経路名 FROM route_data ORDER BY 経路番号 ASC"
@@ -400,12 +329,6 @@ for row in results:
 # ドロップダウンメニューを作成
 selected_route = tk.StringVar()
 
-# 選択されている経路選択用ドロップダウンメニューを見る変数
-selected_value = 0
-
-# 中間座標の数字
-num = 0
-
 # マウスクリックイベントのバインド
 last_click_position = None  # 前回のクリック位置を保存する変数
 canvas.bind("<Button-1>", handle_click)
@@ -417,95 +340,8 @@ coordinate_label.pack()
 # ドロップダウンメニューの選択変更時に呼ばれる関数を設定
 selected_route.trace('w', lambda *args: handle_selection())
 
-# 標示画像の変形
-start_image_path = "start_flag.png"
-start_image = Image.open(start_image_path)
-start_image = start_image.resize((40, 40))
-start_photo = ImageTk.PhotoImage(start_image)
 
-half_image_path = "half.png"
-half_image = Image.open(half_image_path)
-half_image = half_image.resize((40, 40))
-half_photo = ImageTk.PhotoImage(half_image)
-
-stop_image_path = "itiziteisi.png"
-stop_image = Image.open(stop_image_path)
-stop_image = stop_image.resize((40, 40))
-stop_photo = ImageTk.PhotoImage(stop_image)
-
-gool_image_path = "gool.jpg"
-gool_image = Image.open(gool_image_path)
-gool_image = gool_image.resize((40, 40))
-gool_photo = ImageTk.PhotoImage(gool_image)
-
-
-def handle_submit():
-    global start, half, stop, gool,num
-    x = x_entry.get()
-    y = y_entry.get()
-    if selected_value == 1:
-        start = (x, y)
-        p1, p2 = start
-        print(start)
-        canvas.delete("start")
-        canvas.create_image(p1, p2, anchor=tk.CENTER,
-                            image=start_photo, tag="start")
-
-    elif selected_value == 2:
-        num += 1
-        half.append((x, y))
-        for i, coordinate in enumerate(half):
-            x, y = coordinate
-            canvas.create_text(x, y, text=str(i+1), font=("Arial", 24
-                                                          ), tag="flag")
-    elif selected_value == 3:
-        canvas.create_image(x, y, anchor=tk.CENTER,
-                            image=stop_photo, tag="stop")
-        num += 1
-        half.append((x, y))
-        stop.append(num + 1)
-        for i, coordinate in enumerate(half):
-            x, y = coordinate
-            canvas.create_text(x, y, text=str(i+1), font=("Arial", 24), tag="flag")
-    elif selected_value == 4:
-        gool = (x, y)
-        canvas.delete("gool")
-        canvas.create_image(x, y, anchor=tk.CENTER,
-                            image=gool_photo, tag="gool")
-
-    root = []
-    if start != (0, 0):
-        root.append(start)
-        
-    for coordinate in half:
-        if coordinate != (0, 0):
-            root.append(coordinate)
-    if gool != (0, 0):
-        root.append(gool)
-        
-    # 現在描画されている線を削除
-    canvas.delete("root")
-    canvas.delete("angle")
-
-    #角度計算
-    if len(root) >= 3:
-        start_index = len(root) - 3  # 最後の3つの座標のインデックスの開始位置
-        for i in range(start_index, len(root)-2):
-            x1, y1 = root[i]
-            x2, y2 = root[i+1]
-            x3, y3 = root[i+2]
-            angle = calculate_angle(x1, y1, x2, y2, x3, y3)
-            angles.append(round(angle,2))
-        print(angles)
-
-    # 座標情報を利用して線を描画
-    for i in range(len(root) - 1):
-        x1, y1 = root[i]
-        x2, y2 = root[i + 1]
-        canvas.create_line(x1, y1, x2, y2, fill="red",
-                           dash=(4, 2), width=8, tags="root")
-        if(i >= 1):
-            canvas.create_text(x1+30, y1+30, text=str(round(angles[i-1], 2)), font=("Arial", 12), tag="angle")
+    
 
 def show_selection():
     global selected_value
@@ -567,9 +403,16 @@ y_entry.pack(side="left")
 submit_button = tk.Button(window, text="座標決定", command=handle_submit)
 submit_button.pack()
 
+
+def AGV_handle_submit1():
+    agv_location.AGV_handle_submit(canvas,start_photo)
+    
+# AGV座標取得ボタン
+submit_button = tk.Button(window, text="AGV座標取得", command=AGV_handle_submit1)
+submit_button.pack()
+
 # 決定ボタンを作成
-decision_button = tk.Button(
-    window, text="決定", command=on_decision_button_click)
+decision_button = tk.Button(window, text="決定", command=on_decision_button_click)
 decision_button.pack()
 
 
