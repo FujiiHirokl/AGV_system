@@ -17,7 +17,7 @@ def line_picture(root,canvas,angles):
         canvas.create_line(x1, y1, x2, y2, fill="red",
                            dash=(4, 2), width=8, tags="root")
         if(i >= 1):
-            canvas.create_text(x1+30, y1+30, text=str(round(angles[i-1], 2)), font=("Arial", 12), tag="angle")
+            canvas.create_text(int(x1)+30, int(y1)+30, text=str(round(angles[i-1], 2)), font=("Arial", 12), tag="angle")
             
 def angle_picture(root,angles):
     """_三点の座標から角度を計算し、角度のリストを更新する関数_

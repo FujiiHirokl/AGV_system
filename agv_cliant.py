@@ -8,8 +8,6 @@
 import tkinter as tk  # TkinterをGUIの作成に使用
 import socket  # ソケット通信のためのライブラリをインポート
 
-import image_resize
-
 # グローバル変数としてクライアントソケットを定義
 client_socket = None
 

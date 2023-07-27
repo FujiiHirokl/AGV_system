@@ -319,6 +319,8 @@ def handle_submit():
     x = x_entry.get()
     y = y_entry.get()
 
+    start = (0,0)
+    gool = (0,0)
     # 選択された値に応じて対応する関数を呼び出し、スタート地点、中間地点、ゴール地点を更新
     if selected_value == 1:
         start = route_path_functions.handle_start(x, y, start_photo, canvas)
@@ -340,6 +342,8 @@ def handle_submit():
     # 角度計算と線表示
     draw_line.angle_picture(root, angles)
     draw_line.line_picture(root, canvas, angles)
+    
+    print(root)
 
 def show_selection():
     """
@@ -366,7 +370,7 @@ def AGV_handle_submit1():
     """AGVの座標取得を行うためのコールバック関数です。
     agv_location モジュールの AGV_handle_submit 関数を呼び出します。
     """
-    agv_location.AGV_handle_submit(canvas, start_photo)
+    agv_location.AGV_handle_submit(canvas, start_photo , x_entry, y_entry, submit_button)
     
 # ウィンドウの作成と初期設定
 window = tk.Tk()
@@ -459,8 +463,8 @@ submit_button = tk.Button(window, text="座標決定", command=handle_submit)
 submit_button.pack()
 
 # AGV座標取得ボタン
-submit_button = tk.Button(window, text="AGV座標取得", command=AGV_handle_submit1)
-submit_button.pack()
+get_coordinates_button = tk.Button(window, text="AGV座標取得", command=AGV_handle_submit1)
+get_coordinates_button.pack()
 
 # 決定ボタンを作成
 decision_button = tk.Button(window, text="決定", command=on_decision_button_click)
