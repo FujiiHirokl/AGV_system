@@ -1,6 +1,6 @@
 # ファイル: Main.py
 # 作成者: 藤井広輝
-# 更新日: 2023/5/20
+# 更新日: 2023/6/20
 # 説明: AGV経路登録システムのメイン
 
 # 必要なライブラリをインポート
@@ -315,12 +315,14 @@ def handle_submit():
     まとめ、リスト "root" に格納します。そして、描画されている線と角度情報をキャンバス上から
     削除し、新たに計算された角度情報を用いて線を描画します。
     """
+    
+    # グローバル変数として宣言
+    global start, half, gool, stop, angles, selected_value, num
+    
     # x_entryとy_entryから入力された座標情報を取得
     x = x_entry.get()
     y = y_entry.get()
 
-    start = (0,0)
-    gool = (0,0)
     # 選択された値に応じて対応する関数を呼び出し、スタート地点、中間地点、ゴール地点を更新
     if selected_value == 1:
         start = route_path_functions.handle_start(x, y, start_photo, canvas)
@@ -334,6 +336,7 @@ def handle_submit():
     # 経路をまとめる
     root = []
     route_path_functions.root_set(start, half, gool, root)
+    print(root)
 
     # 現在描画されている線と角度情報をキャンバス上から削除
     canvas.delete("root")
@@ -353,16 +356,12 @@ def show_selection():
     global selected_value
     selected_option = var.get()
     if selected_option == 1:
-        label.config(text="Option 1 selected", foreground="green")
         selected_value = 1
     elif selected_option == 2:
-        label.config(text="Option 2 selected", foreground="blue")
         selected_value = 2
     elif selected_option == 3:
-        label.config(text="Option 3 selected", foreground="red")
         selected_value = 3
     elif selected_option == 4:
-        label.config(text="Option 4 selected", foreground="red")
         selected_value = 4
         
 # AGV座標取得ボタンのコールバック関数
@@ -424,10 +423,6 @@ selected_route.trace('w', lambda *args: handle_selection())
 
 # ラジオボタンの選択結果を格納するための変数を作成
 var = tk.IntVar()
-
-# 選択結果を表示するためのラベルを作成
-label = ttk.Label(window, text="Please make a selection", foreground="gray")
-label.pack(pady=10)
 
 # ラジオボタンを作成
 option1 = ttk.Radiobutton(window, text="スタート", variable=var, value=1, command=show_selection)
