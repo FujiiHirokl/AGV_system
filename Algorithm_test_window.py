@@ -11,7 +11,7 @@ import random
 import algorithm_function
 import tkinter.messagebox as messagebox
 
-def create_Algorithm_window(canvas, selected_action, coordinates, status_bar):
+def create_Algorithm_window(canvas,coordinates):
     """アルゴリズムのテストウィンドウを作成します。
 
     Args:
@@ -24,8 +24,6 @@ def create_Algorithm_window(canvas, selected_action, coordinates, status_bar):
     algorithm_window.title("経路選択アルゴリズム")
     algorithm_window.geometry("400x100")
 
-    print(selected_action)
-    print(coordinates)
 
     # メインウィンドウのキャンバスに車の画像を表示
     x, y = coordinates[0]
@@ -129,7 +127,6 @@ def create_Algorithm_window(canvas, selected_action, coordinates, status_bar):
         # 到着とされる距離以内にいるか判断
         if math.sqrt((coordinates[1 + i][0] - x) ** 2 + (coordinates[1 + i][1] - y) ** 2) <= 30:
             arrival()
-        status_bar.config(text="x座標: {:.1f}   y座標: {:.1f}   角度: {:.1f}".format(x, y, angle))
 
     def on_close():
         """ウィンドウが閉じられる際の処理を行います。"""

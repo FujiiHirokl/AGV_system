@@ -12,10 +12,10 @@ def AGV_handle_submit(canvas, start_photo, x_entry, y_entry, submit_button):
     """UDPサーバーアプリケーションのGUIを作成します。
 
     Args:
-        canvas (tk.Canvas): キャンバスウィジェット
-        start_photo (ImageTk.PhotoImage): 画像のためのPhotoImageオブジェクト
-        x_entry (tk.Entry): x座標を入力するためのエントリーウィジェット
-        y_entry (tk.Entry): y座標を入力するためのエントリーウィジェット
+        canvas:tk.Canvas,
+        start_photo (ImageTk.PhotoImage):
+        x_entry (tk.Entry):
+        y_entry (tk.Entry):
         submit_button (tk.Button): 
     """
     
