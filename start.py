@@ -1,6 +1,7 @@
 import tkinter as tk
 import Main
 import monitoring
+
 # メインウィンドウを作成
 root = tk.Tk()
 root.title("無人搬送車制御アプリケーション ver1.0.0")
@@ -8,6 +9,8 @@ root.title("無人搬送車制御アプリケーション ver1.0.0")
 # ウィンドウサイズを固定
 root.geometry("501x340")
 root.resizable(False, False)  # サイズ変更を無効にする
+
+
 
 # 画像を読み込む
 bg_image = tk.PhotoImage(file="haguruma.png")

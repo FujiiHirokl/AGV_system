@@ -1,6 +1,13 @@
 import tkinter as tk
 from tkinter import Menu
 from PIL import Image, ImageTk
+import os
+from urllib.parse import parse_qs
+import mysql.connector
+from mysql.connector import Error
+
+
+db_pass = os.getenv('db_pass')
 
 # 初期_radius変数をグローバル変数として定義
 initial_radius = 0
@@ -74,8 +81,8 @@ def monitaring():
     window.mainloop()
     
 class time_event:
-    x_point = 100
-    y_point = 100
+    x_point = 0
+    y_point = 0
 
     @classmethod
     def set_x_point(cls, new_x):
@@ -86,10 +93,28 @@ class time_event:
         cls.y_point = new_y
 
     def time_event():
-        if not hasattr(time_event, "count"):
-            time_event.count = 0
-        time_event.count += 2
-        time_event.set_x_point(200)
-        time_event.set_y_point(200 + time_event.count)
-        print(1)
+        try:
+            # データベースに接続
+            connector = mysql.connector.connect(user='root', password=db_pass, host='localhost', database='root', charset='utf8mb4')
+            cursor = connector.cursor()
+            
+            # SELECTクエリの作成と実行
+            select_query = "SELECT x, y FROM coordinates WHERE id = 1;"
+            cursor.execute(select_query)
+            
+            # 結果の取得
+            result = cursor.fetchone()
+            
+            # リソースを解放
+            cursor.close()
+            connector.close()
+            
+            time_event.set_x_point(result[0])
+            time_event.set_y_point(result[1])
+            #値調節要SQL
+            
+            #UPDATE coordinates SET x = 300, y = 250 WHERE id = 1;
+        except Error as e:
+            # エラーメッセージを返す
+            return {"error": str(e)}
 
