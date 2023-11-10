@@ -31,6 +31,7 @@ import draw_line
 #   角度 DECIMAL(5, 2)
 # );
 def aaa():
+    angle = 180
     # MySQLデータベースへの接続
     connector = mysql.connector.connect(user='root', password='wlcm2T4', host='localhost', database='root', charset='utf8mb4')
     cursor = connector.cursor()
@@ -41,7 +42,7 @@ def aaa():
         delete.delete_window(canvas)
 
 
-    def perform_processing(selected_route, coordinates):
+    def perform_processing():
         """選択された経路と座標情報を元に、アルゴリズムテストウィンドウを作成します。
 
         Args:
@@ -49,7 +50,12 @@ def aaa():
             coordinates (list): 座標情報を格納したリスト。各要素はタプル (x, y) 形式となります。
         """
         # algorithm_test_windowモジュールのcreate_Algorithm_window関数を呼び出し、アルゴリズムテストウィンドウを作成します。
-        algorithm_test_window.create_Algorithm_window(canvas, selected_route, coordinates, status_bar)
+        #sub_window.create_sub_window(canvas, status_bar)
+        coordinates = [(100, 100), (200, 200), (300, 300)]  # これは例です。実際の座標に合わせてください。
+
+        # create_Algorithm_window関数の呼び出し
+        algorithm_test_window.create_Algorithm_window(canvas, coordinates)
+        #algorithm_test_window.create_Algorithm_window(canvas,coordinates)
 
         # 選択された経路番号をコンソールに出力します。
         print(f"Selected Route: {selected_route}")
@@ -103,26 +109,6 @@ def aaa():
         draw_line.angle_picture(root, angles)
         draw_line.line_picture(root, canvas, angles)
 
-
-
-    def change_image():
-        """
-        この関数は、ユーザーが新しい画像を選択するためのファイルダイアログを表示し、選択された画像をキャンバス上に表示する役割を持ちます。
-        
-        グローバル変数:
-            image (PIL.Image.Image): 新しい画像を読み込むためのPILのImageオブジェクトです。
-            photo (ImageTk.PhotoImage): キャンバス上に表示するためのTkinterのImageTk.PhotoImageオブジェクトです。
-        """
-
-        # 画像の選択ダイアログを表示し、新しい画像ファイルを選択
-        new_image_path = tk.filedialog.askopenfilename(
-            filetypes=[("Image Files", "*.jpg;*.jpeg;*.png")])
-
-        # 新しい画像を読み込み、キャンバス上の画像を更新
-        image = Image.open(new_image_path)
-        image = image.resize((700, 500))
-        photo = ImageTk.PhotoImage(image)
-        canvas.create_image(0, 0, anchor=tk.NW, image=photo)
 
 
     def handle_selection():
@@ -386,7 +372,7 @@ def aaa():
     start_photo = image_resize.resize_image("start_flag.png", 40, 40)
     half_photo = image_resize.resize_image("half.png", 40, 40)
     stop_photo = image_resize.resize_image("itiziteisi.png", 40, 40)
-    gool_photo = image_resize.resize_image("gool.jpg", 40, 40)
+    gool_photo = image_resize.resize_image("gool.png", 40, 40)
 
     # キャンバスの作成と画像の表示
     """
@@ -412,7 +398,7 @@ def aaa():
     # ファイルメニュー
     file_menu = tk.Menu(menubar, tearoff=0)
     file_menu.add_command(label="経路情報削除", command=delete_route_info)
-    file_menu.add_command(label="画像を変更", command=change_image)
+    file_menu.add_command(label="オプション", command=perform_processing)
     menubar.add_cascade(label="デバッグ", menu=file_menu)
 
     # ステータスバーの作成
@@ -436,18 +422,60 @@ def aaa():
 
     # ラジオボタンの選択結果を格納するための変数を作成
     var = tk.IntVar()
+    
+    # 新しいスタイルの設定
+    style = ttk.Style()
+    
+    # 通常の状態のスタイル
+    style.configure("Mechanical.TRadiobutton",
+                font=("Courier New", 12, "bold"),
+                foreground="black",  # テキストの色
+                background="lightgray",  # 背景色
+                padding=(8, 8),
+                relief="ridge",  # 通常の状態の輪郭はridge（立体的）
+                )
+
+    # 押されたときのスタイル
+    style.map("Mechanical.TRadiobutton",
+            background=[("active", "gray")],  # 押されたときの背景色
+            )
+    
+    image_start = tk.PhotoImage(file="start_bottun.png")
+    image_tyuuan = tk.PhotoImage(file="tyuukan.png")
+    image_start_clicked = tk.PhotoImage(file="start_bottun_kuri.png")
+    image_tyuuan_clicked = tk.PhotoImage(file="tyuukan_kuri.png")
+            
+    def show_selection1(value):
+        print("選択された値:", value)
+    def change_image(widget, new_image):
+        widget.configure(image=new_image)
+
+    # ラベルを作成（ラジオボタンとして振る舞う）
+    option10 = tk.Label(window,image=image_start, compound="left", cursor="hand2")
+    option20 = tk.Label(window,image=image_tyuuan, compound="left", cursor="hand2")
+
+    # ラジオボタンのクリックイベントをバインド
+    option10.bind("<Button-1>", lambda event: [show_selection1(1), change_image(option10, image_start_clicked),change_image(option20, image_tyuuan)])
+    option20.bind("<Button-1>", lambda event: [show_selection1(2), change_image(option20, image_tyuuan_clicked),change_image(option10, image_start)])
+
+    # ラベルの配置
+    option10.pack()
+    option20.pack()
+    
+    # 背景色を薄い灰色に設定
+    window.config(bg="#f0f0f0")  # ライトグレーの色コード
 
     # ラジオボタンを作成
-    option1 = ttk.Radiobutton(window, text="スタート", variable=var, value=1, command=show_selection)
+    option1 = ttk.Radiobutton(window, text="スタート", variable=var, value=1, command=show_selection,style="Toolbutton.TRadiobutton")
     option1.pack()
 
-    option2 = ttk.Radiobutton(window, text="中間地点", variable=var, value=2, command=show_selection)
+    option2 = ttk.Radiobutton(window, text="中間地点", variable=var, value=2, command=show_selection,style="Mechanical.TRadiobutton")
     option2.pack()
 
-    option3 = ttk.Radiobutton(window, text="一時停止", variable=var, value=3, command=show_selection)
+    option3 = ttk.Radiobutton(window, text="一時停止", variable=var, value=3, command=show_selection,style="Mechanical.TRadiobutton")
     option3.pack()
 
-    option4 = ttk.Radiobutton(window, text="ゴール", variable=var, value=4, command=show_selection)
+    option4 = ttk.Radiobutton(window, text="ゴール", variable=var, value=4, command=show_selection,style="Mechanical.TRadiobutton")
     option4.pack()
 
     # x座標の入力欄とy座標の入力欄を同じ行に配置するフレームを作成
@@ -477,6 +505,7 @@ def aaa():
     # 決定ボタンを作成
     decision_button = tk.Button(window, text="決定", command=on_decision_button_click)
     decision_button.pack()
+
 
     # ウィンドウのメインループ
     window.mainloop()
