@@ -12,7 +12,6 @@ from tkinter import ttk
 
 # 自作モジュールから必要な部分をインポート
 from global_variable import selected_value, selected_number, route_name_entry, num, start, half, stop, gool, route_names, angles
-import algorithm_test_window
 import delete
 import agv_location
 import image_resize
@@ -54,7 +53,7 @@ def aaa():
         coordinates = [(100, 100), (200, 200), (300, 300)]  # これは例です。実際の座標に合わせてください。
 
         # create_Algorithm_window関数の呼び出し
-        algorithm_test_window.create_Algorithm_window(canvas, coordinates)
+        #algorithm_test_window.create_Algorithm_window(canvas, coordinates)
         #algorithm_test_window.create_Algorithm_window(canvas,coordinates)
 
         # 選択された経路番号をコンソールに出力します。
@@ -423,87 +422,348 @@ def aaa():
     # ラジオボタンの選択結果を格納するための変数を作成
     var = tk.IntVar()
     
-    # 新しいスタイルの設定
-    style = ttk.Style()
-    
-    # 通常の状態のスタイル
-    style.configure("Mechanical.TRadiobutton",
-                font=("Courier New", 12, "bold"),
-                foreground="black",  # テキストの色
-                background="lightgray",  # 背景色
-                padding=(8, 8),
-                relief="ridge",  # 通常の状態の輪郭はridge（立体的）
-                )
+    # 画像データの保存
+    image_start = tk.PhotoImage(file="start_button.png")
+    image_middle = tk.PhotoImage(file="tyuukan_button.png")
+    image_itizi = tk.PhotoImage(file="itizi_button.png")
+    image_target = tk.PhotoImage(file="target_button.png")
 
-    # 押されたときのスタイル
-    style.map("Mechanical.TRadiobutton",
-            background=[("active", "gray")],  # 押されたときの背景色
-            )
-    
-    image_start = tk.PhotoImage(file="start_bottun.png")
-    image_tyuuan = tk.PhotoImage(file="tyuukan.png")
-    image_start_clicked = tk.PhotoImage(file="start_bottun_kuri.png")
-    image_tyuuan_clicked = tk.PhotoImage(file="tyuukan_kuri.png")
-            
-    def show_selection1(value):
+    # タッチ時の画像データの保存
+    image_start_touch = tk.PhotoImage(file="start_button_touch.png")
+    image_middle_touch = tk.PhotoImage(file="tyuukan_button_touch.png")
+    image_itizi_touch = tk.PhotoImage(file="itizi_button_touch.png")
+    image_target_touch = tk.PhotoImage(file="target_button_touch.png")
+
+    # クリック時の画像データの保存
+    image_start_clicked = tk.PhotoImage(file="start_button_clicked.png")
+    image_middle_clicked = tk.PhotoImage(file="tyuukan_button_clicked.png")
+    image_itizi_clicked = tk.PhotoImage(file="itizi_button_clicked.png")
+    image_target_clicked = tk.PhotoImage(file="target_button_clicked.png")
+
+    # 選択状態の管理用の変数
+    option1_clicked = False
+    option2_clicked = False
+    option3_clicked = False
+    option4_clicked = False
+
+    def show_selection(value):
+        """選択された値を表示する関数
+
+        Args:
+            value (int): 選択された値
+        """
+        global selected_value
         print("選択された値:", value)
+        selected_value = value
+
     def change_image(widget, new_image):
+        """ウィジェットの画像を変更する関数
+
+        Args:
+            widget (tk.Label): 画像を変更する対象のウィジェット
+            new_image (tk.PhotoImage): 新しい画像
+        """
         widget.configure(image=new_image)
 
-    # ラベルを作成（ラジオボタンとして振る舞う）
-    option10 = tk.Label(window,image=image_start, compound="left", cursor="hand2")
-    option20 = tk.Label(window,image=image_tyuuan, compound="left", cursor="hand2")
+    def reset_button_state():
+        """ボタンの状態をリセットする関数
+        """
+        nonlocal option1_clicked, option2_clicked, option3_clicked, option4_clicked
+        option1_clicked = False
+        option2_clicked = False
+        option3_clicked = False
+        option4_clicked = False
+        change_image(option1, image_start)
+        change_image(option2, image_middle)
+        change_image(option3, image_itizi)
+        change_image(option4, image_target)
+        option1.configure(state=tk.NORMAL)
+        option2.configure(state=tk.NORMAL)
+        option3.configure(state=tk.NORMAL)
+        option4.configure(state=tk.NORMAL)
 
-    # ラジオボタンのクリックイベントをバインド
-    option10.bind("<Button-1>", lambda event: [show_selection1(1), change_image(option10, image_start_clicked),change_image(option20, image_tyuuan)])
-    option20.bind("<Button-1>", lambda event: [show_selection1(2), change_image(option20, image_tyuuan_clicked),change_image(option10, image_start)])
+    # 各オプションがクリックされたときの処理
+    def on_option1_click(event):
+        """オプション1がクリックされたときの処理
 
-    # ラベルの配置
-    option10.pack()
-    option20.pack()
-    
-    # 背景色を薄い灰色に設定
-    window.config(bg="#f0f0f0")  # ライトグレーの色コード
+        Args:
+            event (tk.Event): イベントオブジェクト
+        """
+        nonlocal option1_clicked, option2_clicked, option3_clicked, option4_clicked
+        option1_clicked = not option1_clicked
 
-    # ラジオボタンを作成
-    option1 = ttk.Radiobutton(window, text="スタート", variable=var, value=1, command=show_selection,style="Toolbutton.TRadiobutton")
+        if option1_clicked:
+            change_image(option1, image_start_clicked)
+            change_image(option2, image_middle)
+            change_image(option3, image_itizi)
+            change_image(option4, image_target)
+            option2.configure(state=tk.DISABLED)
+            option3.configure(state=tk.DISABLED)
+            option4.configure(state=tk.DISABLED)
+        else:
+            change_image(option1, image_start)
+            change_image(option2, image_middle)
+            change_image(option3, image_itizi)
+            change_image(option4, image_target)
+            option2.configure(state=tk.NORMAL)
+            option3.configure(state=tk.NORMAL)
+            option4.configure(state=tk.NORMAL)
+
+        # 他のオプションが選択されていればリセット
+        if option2_clicked or option3_clicked or option4_clicked:
+            reset_button_state()
+            option1_clicked = not option1_clicked
+            change_image(option1, image_start_clicked)
+            option2.configure(state=tk.DISABLED)
+            option3.configure(state=tk.DISABLED)
+            option4.configure(state=tk.DISABLED)
+
+        show_selection(1)
+
+    def on_option2_click(event):
+        """オプション2がクリックされたときの処理
+
+        Args:
+            event (tk.Event): イベントオブジェクト
+        """
+        nonlocal option1_clicked, option2_clicked, option3_clicked, option4_clicked
+        option2_clicked = not option2_clicked
+
+        if option2_clicked:
+            change_image(option2, image_middle_clicked)
+            change_image(option1, image_start)
+            change_image(option3, image_itizi)
+            change_image(option4, image_target)
+            option1.configure(state=tk.DISABLED)
+            option3.configure(state=tk.DISABLED)
+            option4.configure(state=tk.DISABLED)
+        else:
+            change_image(option2, image_middle)
+            change_image(option1, image_start)
+            change_image(option3, image_itizi)
+            change_image(option4, image_target)
+            option1.configure(state=tk.NORMAL)
+            option3.configure(state=tk.NORMAL)
+            option4.configure(state=tk.NORMAL)
+
+        if option1_clicked or option3_clicked or option4_clicked:
+            reset_button_state()
+            option2_clicked = not option2_clicked
+            change_image(option2, image_middle_clicked)
+            option1.configure(state=tk.DISABLED)
+            option3.configure(state=tk.DISABLED)
+            option4.configure(state=tk.DISABLED)
+
+        show_selection(2)
+
+    def on_option3_click(event):
+        """オプション3がクリックされたときの処理
+
+        Args:
+            event (tk.Event): イベントオブジェクト
+        """
+        nonlocal option1_clicked, option2_clicked, option3_clicked, option4_clicked
+        option3_clicked = not option3_clicked
+
+        if option3_clicked:
+            change_image(option3, image_itizi_clicked)
+            change_image(option1, image_start)
+            change_image(option2, image_middle)
+            change_image(option4, image_target)
+            option1.configure(state=tk.DISABLED)
+            option2.configure(state=tk.DISABLED)
+            option4.configure(state=tk.DISABLED)
+        else:
+            change_image(option3, image_itizi)
+            change_image(option1, image_start)
+            change_image(option2, image_middle)
+            change_image(option4, image_target)
+            option1.configure(state=tk.NORMAL)
+            option2.configure(state=tk.NORMAL)
+            option4.configure(state=tk.NORMAL)
+
+        if option1_clicked or option2_clicked or option4_clicked:
+            reset_button_state()
+            option3_clicked = not option3_clicked
+            change_image(option3, image_itizi_clicked)
+            option1.configure(state=tk.DISABLED)
+            option2.configure(state=tk.DISABLED)
+            option4.configure(state=tk.DISABLED)
+
+        show_selection(3)
+
+    def on_option4_click(event):
+        """オプション4がクリックされたときの処理
+
+        Args:
+            event (tk.Event): イベントオブジェクト
+        """
+        nonlocal option1_clicked, option2_clicked, option3_clicked, option4_clicked
+        option4_clicked = not option4_clicked
+
+        if option4_clicked:
+            change_image(option4, image_target_clicked)
+            change_image(option1, image_start)
+            change_image(option2, image_middle)
+            change_image(option3, image_itizi)
+            option1.configure(state=tk.DISABLED)
+            option2.configure(state=tk.DISABLED)
+            option3.configure(state=tk.DISABLED)
+        else:
+            change_image(option4, image_target)
+            change_image(option1, image_start)
+            change_image(option2, image_middle)
+            change_image(option3, image_itizi)
+            option1.configure(state=tk.NORMAL)
+            option2.configure(state=tk.NORMAL)
+            option3.configure(state=tk.NORMAL)
+
+        if option1_clicked or option2_clicked or option3_clicked:
+            reset_button_state()
+            option4_clicked = not option4_clicked
+            change_image(option4, image_target_clicked)
+            option1.configure(state=tk.DISABLED)
+            option2.configure(state=tk.DISABLED)
+            option3.configure(state=tk.DISABLED)
+
+        show_selection(4)
+
+    def on_option1_leave(event):
+        """オプション1からマウスが離れたときの処理
+
+        Args:
+            event (tk.Event): イベントオブジェクト
+        """
+        if not option1_clicked:
+            change_image(option1, image_start)
+
+    def on_option2_leave(event):
+        """オプション2からマウスが離れたときの処理
+
+        Args:
+            event (tk.Event): イベントオブジェクト
+        """
+        if not option2_clicked:
+            change_image(option2, image_middle)
+
+    def on_option3_leave(event):
+        """オプション3からマウスが離れたときの処理
+
+        Args:
+            event (tk.Event): イベントオブジェクト
+        """
+        if not option3_clicked:
+            change_image(option3, image_itizi)
+
+    def on_option4_leave(event):
+        """オプション4からマウスが離れたときの処理
+
+        Args:
+            event (tk.Event): イベントオブジェクト
+        """
+        if not option4_clicked:
+            change_image(option4, image_target)
+
+    def on_option1_enter(event):
+        """オプション1にマウスが乗ったときの処理
+
+        Args:
+            event (tk.Event): イベントオブジェクト
+        """
+        if not option1_clicked:
+            change_image(option1, image_start_touch)
+        else:
+            change_image(option1, image_start_clicked)
+
+    def on_option2_enter(event):
+        """オプション2にマウスが乗ったときの処理
+
+        Args:
+            event (tk.Event): イベントオブジェクト
+        """
+        if not option2_clicked:
+            change_image(option2, image_middle_touch)
+        else:
+            change_image(option2, image_middle_clicked)
+
+    def on_option3_enter(event):
+        """オプション3にマウスが乗ったときの処理
+
+        Args:
+            event (tk.Event): イベントオブジェクト
+        """
+        if not option3_clicked:
+            change_image(option3, image_itizi_touch)
+        else:
+            change_image(option3, image_itizi_clicked)
+
+    def on_option4_enter(event):
+        """オプション4にマウスが乗ったときの処理
+
+        Args:
+            event (tk.Event): イベントオブジェクト
+        """
+        if not option4_clicked:
+            change_image(option4, image_target_touch)
+        else:
+            change_image(option4, image_target_clicked)
+
+
+    # オプションのウィジェットの作成
+    option1 = tk.Label(window, image=image_start, compound="left", cursor="hand2")
+    option2 = tk.Label(window, image=image_middle, compound="left", cursor="hand2")
+    option3 = tk.Label(window, image=image_itizi, compound="left", cursor="hand2")
+    option4 = tk.Label(window, image=image_target, compound="left", cursor="hand2")
+
+    # イベントのバインディング
+    option1.bind("<Button-1>", on_option1_click)
+    option1.bind("<Leave>", on_option1_leave)
+    option1.bind("<Enter>", on_option1_enter)
+
+    option2.bind("<Button-1>", on_option2_click)
+    option2.bind("<Leave>", on_option2_leave)
+    option2.bind("<Enter>", on_option2_enter)
+
+    option3.bind("<Button-1>", on_option3_click)
+    option3.bind("<Leave>", on_option3_leave)
+    option3.bind("<Enter>", on_option3_enter)
+
+    option4.bind("<Button-1>", on_option4_click)
+    option4.bind("<Leave>", on_option4_leave)
+    option4.bind("<Enter>", on_option4_enter)
+
+    # オプションの配置
     option1.pack()
-
-    option2 = ttk.Radiobutton(window, text="中間地点", variable=var, value=2, command=show_selection,style="Mechanical.TRadiobutton")
     option2.pack()
-
-    option3 = ttk.Radiobutton(window, text="一時停止", variable=var, value=3, command=show_selection,style="Mechanical.TRadiobutton")
     option3.pack()
-
-    option4 = ttk.Radiobutton(window, text="ゴール", variable=var, value=4, command=show_selection,style="Mechanical.TRadiobutton")
     option4.pack()
 
-    # x座標の入力欄とy座標の入力欄を同じ行に配置するフレームを作成
+    # 座標入力フレームの作成と配置
     input_frame = tk.Frame(window)
     input_frame.pack()
 
     # x座標の入力欄
-    x_label = tk.Label(input_frame, text="座標(x,y):")
+    x_label = tk.Label(input_frame, text="X座標:")  # ラベルにテキストを追加
     x_label.pack(side="left")
-    x_entry = tk.Entry(input_frame, width=7)  # 幅を10に設定
+    x_entry = tk.Entry(input_frame, width=5)  # 幅を10に設定
     x_entry.pack(side="left")
 
     # y座標の入力欄
-    y_label = tk.Label(input_frame)
+    y_label = tk.Label(input_frame, text="Y座標:")  # ラベルにテキストを追加
     y_label.pack(side="left")
-    y_entry = tk.Entry(input_frame, width=7)  # 幅を10に設定
+    y_entry = tk.Entry(input_frame, width=5)  # 幅を10に設定
     y_entry.pack(side="left")
 
     # 座標決定ボタン
-    submit_button = tk.Button(window, text="座標決定", command=handle_submit)
+    submit_button = tk.Button(window, text="座標決定", command=handle_submit, width=20)
     submit_button.pack()
 
     # AGV座標取得ボタン
-    get_coordinates_button = tk.Button(window, text="AGV座標取得", command=AGV_handle_submit1)
+    get_coordinates_button = tk.Button(window, text="AGV座標取得", command=AGV_handle_submit1, width=20)
     get_coordinates_button.pack()
 
     # 決定ボタンを作成
-    decision_button = tk.Button(window, text="決定", command=on_decision_button_click)
+    decision_button = tk.Button(window, text="決定", command=on_decision_button_click, width=20)
     decision_button.pack()
 
 

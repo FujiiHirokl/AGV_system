@@ -25,6 +25,7 @@ bg_label.place(x=0, y=0)
 def open_next_window1():
     Main.aaa()
 
+
 def open_next_window2():
     monitoring.monitaring()
 

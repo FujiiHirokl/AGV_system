@@ -24,7 +24,28 @@ import tkinter.messagebox as messagebox
 #   角度 DECIMAL(5, 2)
 # );
 
-def create_Algorithm_window(canvas,coordinates,angles):
+class next_point():
+    next = 1
+    cool_sum = 0
+    def __init__(self):
+        self._next = 1
+        self._cool_sum = 0
+
+    def set_next(self, value):
+        self._next = value
+
+    def get_next(self):
+        return self._next
+
+    def set_cool_sum(self, value):
+        self._cool_sum = value
+
+    def get_cool_sum(self):
+        return self._cool_sum
+    
+
+
+def create_Algorithm_window(canvas,coordinates,angles,step_info):
     """アルゴリズムのテストウィンドウを作成します。
 
     Args:
@@ -59,6 +80,31 @@ def create_Algorithm_window(canvas,coordinates,angles):
     move_x = 0
     move_y = 0
     i = 0
+    Turning_flag = 0
+    
+    def half_point():
+        nonlocal i
+        i = i + 1
+        result = messagebox.showwarning("一時停止", "目的地に到着しました！再開しますか？", type=messagebox.YESNO)
+        if result == messagebox.YES:
+            # リスタートボタンが押された場合の処理
+            """
+            coordinates.reverse()
+            i = 0
+            angle = 180
+            move_x = 0
+            move_y = 0
+            """
+            pass
+        else:
+            # 終了ボタンが押された場合の処理
+            # ...
+            canvas.delete("root")
+            canvas.delete("car")
+            canvas.delete("start")
+            canvas.delete("gool")
+            algorithm_window.destroy()
+            pass
 
     def arrival():
         """目的地に到着した際の処理を行います。スタート位置に帰還するか終了するかを選択します。"""
@@ -108,7 +154,7 @@ def create_Algorithm_window(canvas,coordinates,angles):
             count_label.config(text=f"実行中... カウント: {count}")
             rotate_image(car, car_photo)  # 画像の回転
             move_image(car)  # 画像の移動
-            algorithm_window.after(100, count_up)  # 1秒後に再度呼び出す
+            algorithm_window.after(200, count_up)  # 1秒後に再度呼び出す
 
     def rotate_image(image_id, photo):
         """画像を回転させます。
@@ -128,37 +174,49 @@ def create_Algorithm_window(canvas,coordinates,angles):
         Args:
             image_id (int): 画像オブジェクトのID
         """
-        nonlocal x, y, move_x, move_y, angle, i
-        move_x = 5 * math.cos(math.radians(angle + 90))  # x軸方向の移動量を修正
-        move_y = 5 * math.sin(math.radians(angle + 90))  # y軸方向の移動量を修正
-        canvas.move(image_id, move_x, move_y)
-        x += move_x
-        y += move_y
-        distance, closest_point = algorithm_function.shortest_distance(coordinates[0 + i], coordinates[1 + i], (x, y))
-        print("distance: {}".format(distance))
+        nonlocal x, y, move_x, move_y, angle, i, Turning_flag
+        if Turning_flag == 0:
+            move_x = 5 * math.cos(math.radians(angle + 90))  # x軸方向の移動量を修正
+            move_y = 5 * math.sin(math.radians(angle + 90))  # y軸方向の移動量を修正
+            canvas.move(image_id, move_x, move_y)
+            x += move_x
+            y += move_y
+            distance, closest_point = algorithm_function.shortest_distance(coordinates[0 + i], coordinates[1 + i], (x, y))
+            print("distance: {}".format(distance))
 
-        # 目標の座標距離をどうするかを決める
-        moved_points = algorithm_function.move_points_along_line(coordinates[0 + i], coordinates[1 + i], closest_point, 10)
+            # 目標の座標距離をどうするかを決める
+            moved_points = algorithm_function.move_points_along_line(coordinates[0 + i], coordinates[1 + i], closest_point, 20)
 
-        # どのくらいの角度搬送車の誤差を出すかを決めるlamdamがある
-        angle = algorithm_function.calculate_angle((x, y), moved_points) + 240 + random.randrange(-5, 5)
-
-        # 到着とされる距離以内にいるか判断
-        if math.sqrt((coordinates[1 + i][0] - x) ** 2 + (coordinates[1 + i][1] - y) ** 2) <= 30:
-            arrival()
-        
-        for j in range(len(coordinates)):
+            # どのくらいの角度搬送車の誤差を出すかを決めるlamdamがある
+            angle = algorithm_function.calculate_angle((x, y), moved_points) + 240 + random.randrange(-5, 5)
+            
             # 到着とされる距離以内にいるか判断
-            if math.sqrt((coordinates[j][0] - x) ** 2 + (coordinates[j][1] - y) ** 2) <= 5:
-                # 何かしらの関数を動かす
-                print(j)
-                def change_angle():
-                    """angleを10ずつangles配列の値まで変更する関数を作成します。"""
-                    nonlocal angle, angles, j
-                    if angles[j] > 0:
-                        angle += 10
-                    else:
-                        angle -= 10
+            if math.sqrt((coordinates[np.get_next()][0] - x) ** 2 + (coordinates[np.get_next()][1] - y) ** 2) <= 15:
+                Turning_flag = 1
+        else:
+            Turning()
+            
+                        
+    def Turning():
+        nonlocal angle , Turning_flag,i,step_info
+        if abs(angles[np.get_next()] / 10) > np.get_cool_sum():
+            np.set_cool_sum(np.get_cool_sum() + 1)
+            if angles[np.get_next()] > 0:
+                angle -= 10
+            else:
+                angle += 10
+        else:
+            if int(step_info[np.get_next()]) == 1:
+                print("xxxxxxxxxxxx")
+                half_point()
+            else:
+                i = i + 1
+            np.set_cool_sum(0)
+            np.set_next(np.get_next() + 1)
+            print(np.get_next()) 
+            Turning_flag = 0
+            
+            
 
 
     def on_close():
@@ -194,7 +252,7 @@ import mysql.connector
 cnx = mysql.connector.connect(user='root', password='wlcm2T4', host='localhost', database='root', charset='utf8mb4')
 cursor = cnx.cursor()
 # 特定の経路番号を指定
-specific_route_number = 3
+specific_route_number = 1
 # SQLクエリを実行
 cursor.execute(f"SELECT x, y FROM route_data WHERE 経路番号 = {specific_route_number} ORDER BY 順番")
 # 結果を取得
@@ -207,14 +265,29 @@ print(coordinates)
 cursor.execute(f"SELECT 角度 FROM route_data WHERE 経路番号 = {specific_route_number} ORDER BY 順番")
 # 結果を取得
 angles = cursor.fetchall()
-# データベース接続を閉じる
-cnx.close()
+
 
 # 最初と最後の要素がNULLであることを考慮
 angles = [angle[0] if angle[0] is not None else 0 for angle in angles]
 
 # 結果を表示
 print(angles)
+
+# 特定の経路番号のデータを取得するSQLクエリ
+query = """
+SELECT 一時停止 FROM route_data
+WHERE 経路番号 = %s
+ORDER BY 順番
+"""
+cursor.execute(query, (specific_route_number,))
+
+# 一時停止情報が1のデータを配列に格納
+step_info = cursor.fetchall()
+step_info = [info[0] for info in step_info]
+
+cnx.close()
+print(step_info)
+np = next_point()
 
 root = tk.Tk()
 canvas = tk.Canvas(root, width=1000, height=800)
@@ -223,5 +296,6 @@ img = ImageTk.PhotoImage(Image.open("image.jpg"))
 # 画像をキャンバスに配置
 canvas.create_image(0, 0, anchor='nw', image=img)
 canvas.pack()
-create_Algorithm_window(canvas, coordinates,angles)
+create_Algorithm_window(canvas, coordinates,angles,step_info)
 root.mainloop()
+
