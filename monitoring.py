@@ -217,7 +217,7 @@ class time_event:
             # リソースを解放
             cursor.close()
             connector.close()
-
+            #バッテリー状況を５段階で表示
             if result[0] >= 100:
                 num_bat = 5
             elif result[0] >= 80:
