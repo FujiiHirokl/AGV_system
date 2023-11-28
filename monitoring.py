@@ -8,7 +8,7 @@ from mysql.connector import Error
 import math
 
 
-db_pass = os.getenv('db_pass')
+db_pass = os.getenv('DB_PASSWORD')
 
 # 初期_radius変数をグローバル変数として定義
 initial_radius = 0
@@ -163,11 +163,18 @@ class time_event:
     def time_event():
         try:
             # データベースに接続
-            connector = mysql.connector.connect(user='root', password=db_pass, host='localhost', database='root', charset='utf8mb4')
+            connector = mysql.connector.connect(
+                user='root', 
+                password=db_pass,
+                host='localhost', 
+                database='AGVcondition', 
+                charset='utf8mb4',
+                collation='utf8mb4_unicode_ci'
+            )
             cursor = connector.cursor()
             
             # SELECTクエリの作成と実行
-            select_query = "SELECT x, y FROM coordinates WHERE id = 1;"
+            select_query = "SELECT Coordinate_x, Coordinate_y FROM AGVstatus WHERE id = 1;"
             cursor.execute(select_query)
             
             # 結果の取得
@@ -176,7 +183,7 @@ class time_event:
             # リソースを解放
             cursor.close()
             connector.close()
-            
+
             time_event.set_x_point(result[0])
             time_event.set_y_point(result[1])
             
@@ -188,14 +195,20 @@ class time_event:
             return {"error": str(e)}
     
     def battery_event():
-        """
         try:
             # データベースに接続
-            connector = mysql.connector.connect(user='root', password=db_pass, host='localhost', database='root', charset='utf8mb4')
+            connector = mysql.connector.connect(
+                user='root', 
+                password=db_pass,
+                host='localhost', 
+                database='AGVcondition', 
+                charset='utf8mb4',
+                collation='utf8mb4_unicode_ci'
+            )
             cursor = connector.cursor()
             
             # SELECTクエリの作成と実行
-            select_query = "SELECT battery_state FROM battery_status WHERE id = 1;"
+            select_query = "SELECT Battery FROM AGVstatus WHERE id = 1;"
             cursor.execute(select_query)
             
             # 結果の取得
@@ -204,10 +217,19 @@ class time_event:
             # リソースを解放
             cursor.close()
             connector.close()
-            
-            return result[0]      
+
+            if result[0] >= 100:
+                num_bat = 5
+            elif result[0] >= 80:
+                num_bat = 4
+            elif result[0] >= 60:
+                num_bat = 3
+            elif result[0] >= 40:
+                num_bat = 2
+            elif result[0] >= 20:
+                num_bat = 1
+            else:
+                num_bat = 0 
+            return num_bat      
         except Error as e:
             return {"error": str(e)}
-        """    
-        return 3
-

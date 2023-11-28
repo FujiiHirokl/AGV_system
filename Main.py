@@ -32,7 +32,15 @@ import draw_line
 def aaa():
     angle = 180
     # MySQLデータベースへの接続
-    connector = mysql.connector.connect(user='root', password='wlcm2T4', host='localhost', database='root', charset='utf8mb4')
+    connector = mysql.connector.connect(
+    user='root', 
+    password='wlcm2T4' , 
+    host='localhost', 
+    database='route', 
+    charset='utf8mb4',
+    collation='utf8mb4_unicode_ci'  # ここを変更
+)
+
     cursor = connector.cursor()
 
     def delete_route_info():

@@ -13,7 +13,15 @@ import mysql.connector
 import image_resize
 
 # データベースへの接続を確立
-connector = mysql.connector.connect(user='root', password='wlcm2T4', host='localhost', database='root', charset='utf8mb4')
+connector = mysql.connector.connect(
+    user='root', 
+    password='wlcm2T4' ,
+    host='localhost', 
+    database='route', 
+    charset='utf8mb4',
+    collation='utf8mb4_unicode_ci'  # ここを変更
+)
+
 cursor = connector.cursor()
 
 
