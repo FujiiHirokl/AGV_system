@@ -33,9 +33,6 @@ def create_pixel_grid_with_alternating_thickness(width, height, thin_line_spacin
     # 画像を保存します
     image.save("pixel_grid_with_alternating_thickness.png")
 
-    # 画像を表示します
-    image.show()
-
 if __name__ == "__main__":
     # 細い線と太い線のピクセル間隔と太さを指定して画像を生成します
     create_pixel_grid_with_alternating_thickness(800, 600, 10, 100, 1, 4)
